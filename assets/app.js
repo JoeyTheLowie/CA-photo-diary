@@ -61,14 +61,14 @@ function render(trip, diary) {
       if (used.has(p)) return;
       if (!p.tile && sizeOf(p) === 'big') {
         if (ar(p) >= 1.15) pend.push([p]);
-        else { const q = list.find((x, k) => k > idx && !x.tile && sizeOf(x) !== 'big' && !used.has(x)); if (q) used.add(q); pend.push(q ? [p, q] : [p]); }
+        else { const q = list.find((x, k) => k > idx && !x.tile && !used.has(x) && (sizeOf(x) !== 'big' || ar(x) < 1.15)); if (q) used.add(q); pend.push(q ? [p, q] : [p]); }
         if (!row.length) rows.push(...pend.splice(0));
         return;
       }
       row.push(p);
       const h = hOf(row);
       if (h <= T) {
-        if (row.length > 1 && Math.abs(hOf(row.slice(0, -1)) - T) < Math.abs(h - T)) { close(row.slice(0, -1)); row = [p]; }
+        if (row.length > 1 && !(row.length === 2 && row[0].tile) && Math.abs(hOf(row.slice(0, -1)) - T) < Math.abs(h - T)) { close(row.slice(0, -1)); row = [p]; }
         else { close(row); row = []; }
       }
     });
@@ -139,27 +139,33 @@ function render(trip, diary) {
     if (headers[0]) d.el.appendChild(headerEl(d, headers[0]));
     /* The first group is photos only, so every day opens with a full row of pictures.
        After that each note gets its own group and sits inside its first row, alternating left and right. */
-    const N = d.notes.length, P = rest.length, segs = [];
-    if (!N) segs.push({ph: rest});
-    else {
-      const first = P ? Math.max(1, Math.round(P / (N + 1))) : 0;
-      segs.push({ph: rest.slice(0, first)});
-      const left = P - first;
-      const base = Math.floor(left / N), extra = left % N; let at = first, t = 0;
-      for (let i = 0; i < N; i++) { const n = base + (i < extra ? 1 : 0); segs.push({ph: rest.slice(at, at + n), note: d.notes[i], side: (d.side0 + (n ? t++ : t)) % 2}); at += n; }
-    }
+    /* Groups: the first one is photos only (about a full row), then one group per note with enough
+       photos to sit beside it. Notes left without photos get a section of their own at the end. */
+    const ar = p => p.w / p.h, segs = [];
+    let k = 0;
+    const take = (need, normalsOnly) => { const out = []; let sum = 0;
+      while (k < rest.length && sum < need) { const p = rest[k++]; out.push(p); if (!normalsOnly || sizeOf(p) === 'normal') sum += ar(p); }
+      return out; };
+    segs.push({ph: take(d.notes.length ? 2.2 : Infinity, false)});
+    d.notes.forEach((note, i) => segs.push({ph: take(1.3, true), note, side: 0}));
+    if (k < rest.length) segs[segs.length - 1].ph.push(...rest.slice(k));
+    let t = d.side0; segs.forEach(sg => { if (sg.note && sg.ph.length) sg.side = t++ % 2; });
     const loose = [];
     segs.forEach(({ph, note, side}) => {
-      let tile = null;
+      let tile = null, partners = [], others = ph;
       if (note) {
         note.style.flex = '';
-        if (ph.length && wide && note._len <= 520) {
+        const normals = ph.filter(p => sizeOf(p) === 'normal');
+        let sum = 0; for (const p of normals) { if (sum >= 1.3 || partners.length === 3) break; partners.push(p); sum += ar(p); }
+        if (partners.length && wide && note._len <= 520) {
           note.className = 'note tile' + (side ? ' right' : '');
-          tile = {tile: true, el: note, w: note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, h: 1};
+          tile = {tile: true, el: note, w: Math.min(note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, Math.max(.6, sum * .75)), h: 1};
+          others = ph.filter(p => !partners.includes(p));
         } else note.className = standalone(note);
       }
-      const items = tile ? (side ? [...ph, tile] : [tile, ...ph]) : ph;
-      const rows = rowsFor(items, Wc);
+      /* the note shares its row with normal photos only; the rest of the group follows */
+      const rows = tile ? [...rowsFor([tile, ...partners], Wc), ...rowsFor(others, Wc)] : rowsFor(ph, Wc);
+      if (tile && side) rows.forEach(x => { if (x.r.includes(tile)) x.r = [...x.r.filter(p => p !== tile), tile]; });
       rows.forEach(({r, h}, i) => {
         d.el.appendChild(photoRow(d, r, h, Wc));
         if (i === 0 && note && !tile && ph.length) d.el.appendChild(note);   /* phones: the note follows the group's first row */
@@ -225,7 +231,6 @@ function render(trip, diary) {
     const label = dn < 1 ? ['Leaving', fmtShort(TRIP_START)] : dn > TRIP_DAYS ? ['Home', `${TRIP_DAYS} days`] : [`Day ${dn}`, curStop ? curStop.name : ''];
     const txt = (tx, anchor) => `<text class="here-label" x="${tx}" y="14" text-anchor="${anchor}" font-family="Inter,sans-serif" font-size="12" fill="#9A938A"><tspan fill="#EDE8E0" font-weight="500">${esc(label[0])}</tspan>${label[1] ? ` · ${esc(label[1])}` : ''}</text>`;
     const pulse = `<circle cx="${x}" cy="${y}" r="3.5" fill="none" stroke="#E8623A" stroke-width="1.2"><animate attributeName="r" values="3.5;10" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0" dur="2.4s" repeatCount="indefinite"/></circle>`;
-    if (stuck) return `<circle cx="${x}" cy="${y}" r="3.5" fill="#FFC98A"/>${pulse}`;
     /* lava front: the travelled line ends in a hot, glowing head, with a thin ember line up to the label */
     return `<defs><linearGradient id="hot" gradientUnits="userSpaceOnUse" x1="${x - 90}" y1="0" x2="${x}" y2="0"><stop offset="0" stop-color="#FFB46A" stop-opacity="0"/><stop offset="1" stop-color="#FFE2B0"/></linearGradient><clipPath id="hotclip"><rect x="${x - 90}" y="0" width="90" height="${H}"/></clipPath>
       <linearGradient id="xh" gradientUnits="userSpaceOnUse" x1="0" y1="${y - 7}" x2="0" y2="6"><stop offset="0" stop-color="#FFB46A" stop-opacity=".85"/><stop offset="1" stop-color="#E8623A" stop-opacity="0"/></linearGradient></defs>
@@ -236,7 +241,7 @@ function render(trip, diary) {
   }
   function drawRidge() {
     const stuck = $('rbar').classList.contains('stuck');
-    const W = ridge.clientWidth, H = ridge.clientHeight, top = stuck ? 8 : 34, bot = H - 10, MAX = 4400, pad = 10;
+    const W = ridge.clientWidth, H = ridge.clientHeight, top = 34, bot = H - 10, MAX = 4400, pad = 10;
     const total = dayNo(END) - 1;
     const X = d => pad + (d / total) * (W - 2 * pad);
     const pts = [{s: HOME, x: X(0), y: bot}].concat(STOPS.map(s => {
@@ -295,7 +300,7 @@ function render(trip, diary) {
   function setActive(id) { current = id; ridge.querySelectorAll('.pt').forEach(b => b.classList.toggle('active', b.dataset.id === id)); }
   drawRidge();
   const rbar = $('rbar');
-  new IntersectionObserver(([e]) => { const st = !e.isIntersecting && e.boundingClientRect.top < 0; if (st !== rbar.classList.contains('stuck')) { rbar.classList.toggle('stuck', st); drawRidge(); } }).observe($('sentinel'));
+  new IntersectionObserver(([e]) => { const st = !e.isIntersecting && e.boundingClientRect.top < 0; if (st !== rbar.classList.contains('stuck')) { rbar.classList.toggle('stuck', st); drawRidge(); } }, {rootMargin: '-9px 0px 0px 0px'}).observe($('sentinel'));
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawRidge, 120); });
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), {rootMargin: '-45% 0px -50% 0px'});
   document.querySelectorAll('.stop').forEach(s => io.observe(s));
