@@ -121,6 +121,8 @@ body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
 .sheet-grid button.used{opacity:.45}
 .sheet-grid button.used::after{content:"placed";position:absolute;left:4px;bottom:4px;font:500 11px/1 var(--f-text);color:var(--pumice);background:rgba(0,0,0,.6);padding:3px 5px;border-radius:4px}
 .sheet-grid button.cur{outline:2px solid var(--ember)}
+.sheet-grid button[data-tag]::after{content:attr(data-tag);position:absolute;left:4px;bottom:4px;font:500 11px/1 var(--f-text);color:var(--pumice);background:rgba(0,0,0,.6);padding:3px 5px;border-radius:4px}
+.tray .t.oth{outline:1px dashed var(--grey-2);outline-offset:-1px}
 .sheet-act{display:flex;gap:8px;flex-wrap:wrap}
 /* ---------- live preview ---------- */
 .pvcard .seg{flex:0 0 auto;min-width:170px}
@@ -336,16 +338,20 @@ let siteDay=[];   /* photos already on the site for this day */
 function pool(){
   const d=day(),out=[],seen=new Set();
   for(const p of siteDay){seen.add(p.hash);out.push({key:p.hash,bg:`url(../img/${p.id}-${p.sizes[0]}.avif), url(${p.lqip})`,ar:p.w/p.h})}
-  for(const it of items)if(it.hash&&!it.bad&&(it.taken||'').slice(0,10)===d&&!seen.has(it.hash)){seen.add(it.hash);out.push({key:it.hash,bg:`url(${it.thumb})`,ar:it.ar,isNew:true})}
+  /* every new photo can be placed; one taken on another day moves to this day when it is placed */
+  const mine=items.filter(it=>it.hash&&!it.bad&&!seen.has(it.hash));
+  for(const it of [...mine.filter(it=>(it.taken||'').slice(0,10)===d),...mine.filter(it=>(it.taken||'').slice(0,10)!==d)])
+    if(!seen.has(it.hash)){seen.add(it.hash);const od=(it.taken||'').slice(0,10)!==d;out.push({key:it.hash,bg:`url(${it.thumb})`,ar:it.ar,isNew:true,it,other:od?new Date(it.taken.slice(0,10)+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):''})}
   return out;
 }
+function claim(key){const x=pool().find(v=>v.key===key);if(x&&x.other){x.it.taken=day()+(x.it.taken||'T12:00').slice(10);x.it.el.querySelector('.when').value=x.it.taken}}
 const placedKeys=()=>new Set(rows.flatMap(r=>(r.p||[]).filter(Boolean)));
 const clean=()=>rows.map(r=>{const T=TYPES[r.t],o={t:r.t};if(T.max)o.p=r.p.filter(Boolean);if(r.t==='photo-text')o.side=r.side;if(T.text||T.quote)o.h=(r.h||'').trim();if(T.text)o.b=(r.b||'').trim();return o})
   .filter(o=>(o.p&&o.p.length)||o.h||o.b);
 const layoutJSON=()=>JSON.stringify(clean());
 function addRowOf(tpl){
   const r=JSON.parse(JSON.stringify(tpl));
-  if(r.p){const used=placedKeys(),free=pool().filter(x=>!used.has(x.key));r.p=r.p.map(()=>{const f=free.shift();return f?f.key:null})}   /* fill with the next unplaced photos */
+  if(r.p){const used=placedKeys(),free=pool().filter(x=>!used.has(x.key));r.p=r.p.map(()=>{const f=free.shift();if(f)claim(f.key);return f?f.key:null})}   /* fill with the next unplaced photos */
   rows.push(r);palOpen=false;drawLayout();refresh();
 }
 $('palette').innerHTML=PALETTE.map((x,i)=>`<button class="pal" type="button" data-i="${i}"><span class="ico${x.sm?' sm':''}">${x.ico}</span>${x.label}</button>`).join('');
@@ -353,9 +359,9 @@ $('palette').onclick=e=>{const b=e.target.closest('.pal');if(b)addRowOf(PALETTE[
 $('addRow').onclick=()=>{palOpen=!palOpen||!rows.length;drawLayout()};
 function drawLayout(){
   const P=pool(),byKey=new Map(P.map(x=>[x.key,x])),used=placedKeys();
-  $('tray').innerHTML=P.map(x=>`<span class="t${used.has(x.key)?' used':''}" style="aspect-ratio:${x.ar.toFixed(3)};background-image:${x.bg}"></span>`).join('');
-  const left=P.filter(x=>!used.has(x.key)).length,other=items.filter(it=>it.taken&&it.taken.slice(0,10)!==day()).length;
-  $('trayInfo').textContent=(P.length?`${P.length} photo${P.length>1?'s':''} on this day, ${left?`${left} not placed yet`:'all placed'}.`:'No photos on this day yet. Add photos above, or pick another day.')+(other?` ${other} new photo${other>1?'s are':' is'} from another day and will be arranged automatically.`:'');
+  $('tray').innerHTML=P.map(x=>`<span class="t${used.has(x.key)?' used':''}${x.other?' oth':''}" style="aspect-ratio:${x.ar.toFixed(3)};background-image:${x.bg}"></span>`).join('');
+  const left=P.filter(x=>!used.has(x.key)).length,other=P.filter(x=>x.other).length;
+  $('trayInfo').textContent=(P.length?`${P.length} photo${P.length>1?'s':''}, ${left?`${left} not placed yet`:'all placed'}.`:'No photos yet. Add photos above, or pick another day.')+(other?` ${other} ${other>1?'were':'was'} taken on another day: place ${other>1?'them':'it'} here and ${other>1?'they move':'it moves'} to this day, or leave ${other>1?'them':'it'} and ${other>1?'they':'it'} appear${other>1?'':'s'} on ${other>1?'their':'its'} own day.`:'');
   $('palette').hidden=!(palOpen||!rows.length);
   $('addRow').textContent=rows.length?'+ Add row':'+ Add first row';
   const host=$('rows');host.textContent='';
@@ -388,7 +394,7 @@ function drawLayout(){
       if(a==='del')rows.splice(i,1);
       drawLayout();refresh()};
     acts.onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
-      if(a==='more'){const used=placedKeys(),f=pool().find(x=>!used.has(x.key));r.p.push(f?f.key:null)}
+      if(a==='more'){const used=placedKeys(),f=pool().find(x=>!used.has(x.key));if(f)claim(f.key);r.p.push(f?f.key:null)}
       if(a==='flip')r.side=r.side==='left'?'right':'left';
       drawLayout();refresh()};
     host.appendChild(el);
@@ -397,11 +403,11 @@ function drawLayout(){
 /* choosing a photo for a spot; a photo that is placed elsewhere moves here */
 function openSheet(r,j){
   const P=pool(),used=placedKeys(),T=TYPES[r.t];
-  $('sheetGrid').innerHTML=P.length?P.map(x=>`<button type="button" data-k="${x.key}" class="${r.p[j]===x.key?'cur':used.has(x.key)?'used':''}" style="background-image:${x.bg}" aria-label="Photo"></button>`).join(''):'<p class="hint">No photos on this day yet.</p>';
+  $('sheetGrid').innerHTML=P.length?P.map(x=>`<button type="button" data-k="${x.key}" class="${r.p[j]===x.key?'cur':used.has(x.key)?'used':''}"${x.other&&!used.has(x.key)?` data-tag="${x.other}"`:''} style="background-image:${x.bg}" aria-label="Photo"></button>`).join(''):'<p class="hint">No photos on this day yet.</p>';
   $('sheetAct').innerHTML=(r.p[j]?'<button class="btn small" type="button" data-a="clear">Empty this spot</button>':'')+(r.p.length>T.min?'<button class="btn small" type="button" data-a="drop">Remove this spot</button>':'');
   $('sheet').hidden=false;
   $('sheetGrid').onclick=e=>{const b=e.target.closest('button[data-k]');if(!b)return;const k=b.dataset.k;
-    rows.forEach(o=>{if(o.p)o.p=o.p.map(v=>v===k?null:v)});r.p[j]=k;closeSheet()};
+    rows.forEach(o=>{if(o.p)o.p=o.p.map(v=>v===k?null:v)});claim(k);r.p[j]=k;closeSheet()};
   $('sheetAct').onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(a==='clear')r.p[j]=null;if(a==='drop')r.p.splice(j,1);if(a)closeSheet()};
 }
 function closeSheet(){$('sheet').hidden=true;drawLayout();refresh()}
