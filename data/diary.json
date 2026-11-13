@@ -347,6 +347,7 @@
   {
    "date": "2026-04-02",
    "stop": "antigua",
+   "heading": "",
    "text": "Dit is een kop, is dit een mooie kop?",
    "caption": "Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit?",
    "i": 0
@@ -354,6 +355,7 @@
   {
    "date": "2026-04-02",
    "stop": "antigua",
+   "heading": "",
    "text": "Kankerdikke quote hier. super diep en filosofisch.",
    "caption": "Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit?",
    "i": 1
@@ -361,6 +363,7 @@
   {
    "date": "2026-04-02",
    "stop": "antigua",
+   "heading": "",
    "text": "what is even going on? lettertype ok?",
    "caption": "Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit? Dit is tekst 1. Ziet dit er beetje mooi uit?",
    "i": 2
