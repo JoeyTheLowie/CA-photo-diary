@@ -17,8 +17,10 @@
     wrap.style.height=H+'px';dpr=Math.min(devicePixelRatio||1,2);cv.width=W*dpr;cv.height=H*dpr;g.setTransform(dpr,0,0,dpr,0,0);
     G=H-rbarH-14;s=Math.min(1.25,Math.max(.72,W/1200));k=s*1.05;
     const mob=W<700,R=rng(11);
-    const px=W*(mob?.8:.78),py=Math.max(H*(mob?.2:.19),70),hgt=G-py;
-    V={x:px,y:py,cw:(mob?17:26)*s,bw:Math.min(hgt*1.1,W*(mob?.4:.3))};
+    /* keep a real cone: the volcano is never more than 1.3x as tall as its half-base, however tall the hero is */
+    const px=W*(mob?.8:.78);let py=Math.max(H*(mob?.2:.19),70),hgt=G-py;
+    const bw=Math.min(hgt*1.1,W*(mob?.55:.3));if(hgt>bw*1.3){hgt=bw*1.3;py=G-hgt}
+    V={x:px,y:py,cw:(mob?17:26)*s,bw};
     /* rugged outline: concave cone, a shoulder on the left, jagged crater rim */
     outline=[];const N=44,L0=V.x-V.bw*1.15,R0=V.x+V.bw*1.2;let rw=0;
     for(let i=0;i<=N;i++){const u=i/N;const x=lerp(L0,V.x-V.cw,u);let h=hgt*Math.pow(u,1.5)+hgt*.11*Math.exp(-Math.pow((u-.6)/.09,2));
