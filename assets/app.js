@@ -80,24 +80,33 @@ function render(trip, diary) {
     return f;
   }
   function noteEl(it) {
+    const el = document.createElement('div'); el.className = 'note';
+    const pars = it.text.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
     const longCap = (it.caption || '').length > 120;
-    const story = it.text.length > 180 || it.text.includes('\n') || longCap;
-    const el = document.createElement('div'); el.className = story ? 'note story' : 'note';
-    (it.text + (longCap ? '\n\n' + it.caption : '')).split(/\n\s*\n/).forEach(par => { const q = document.createElement('p'); q.textContent = par.trim(); el.appendChild(q); });
+    if (longCap) pars.push(it.caption.trim());
+    pars.forEach((par, i) => { const q = document.createElement('p'); q.className = i === 0 && par.length <= 200 ? 'q' : 'body'; q.textContent = par; el.appendChild(q); });
     if (it.caption && !longCap) { const c = document.createElement('span'); c.textContent = it.caption; el.appendChild(c); }
+    el._len = pars.join(' ').length;
     return el;
   }
   function layoutDay(d) {
     const Wc = d.el.clientWidth; if (!Wc || Wc === d.w) return; d.w = Wc;
     d.el.textContent = '';
-    rowsFor(d.list, Wc).forEach(({r, h}, i) => {
+    /* On wider screens a note sits in the first row, to the left of the photos, like a magazine spread. */
+    const tile = d.note && d.list.length && Wc >= 760 && d.note._len <= 420 ? {tile: true, w: d.note._len > 160 ? 1.05 : .82, h: 1} : null;
+    d.note && d.note.classList.toggle('tile', !!tile);
+    rowsFor(tile ? [tile, ...d.list] : d.list, Wc).forEach(({r, h}, i) => {
       const row = document.createElement('div'); row.className = 'jrow'; row.style.height = Math.round(h) + 'px';
-      r.forEach(p => { const f = d.figs.get(p); const w = r.length === 1 ? Math.min(Wc, Math.max(p.w / p.h * h, Wc * .5)) : p.w / p.h * h; f.style.flex = r.length === 1 ? '1 1 0' : `${(p.w / p.h).toFixed(4)} 1 0`; f.classList.toggle('fit', r.length === 1 && p.w / p.h < Wc / h * .7);
-        f.querySelector('source').sizes = Math.ceil(w) + 'px'; row.appendChild(f); });
+      r.forEach(p => {
+        if (p.tile) { d.note.style.flex = `${p.w} 1 0`; row.appendChild(d.note); return; }
+        const f = d.figs.get(p); const w = r.length === 1 ? Math.min(Wc, Math.max(p.w / p.h * h, Wc * .5)) : p.w / p.h * h;
+        f.style.flex = r.length === 1 ? '1 1 0' : `${(p.w / p.h).toFixed(4)} 1 0`; f.classList.toggle('fit', r.length === 1 && p.w / p.h < Wc / h * .7);
+        f.querySelector('source').sizes = Math.ceil(w) + 'px'; row.appendChild(f);
+      });
       d.el.appendChild(row);
-      if (i === 0 && d.note && !d.note.classList.contains('story')) d.el.appendChild(d.note);
+      if (i === 0 && d.note && !tile && d.note._len <= 200) { d.note.style.flex = ''; d.el.appendChild(d.note); }
     });
-    if (d.note && !d.note.parentNode) d.el.appendChild(d.note);
+    if (d.note && !d.note.parentNode) { d.note.style.flex = ''; d.el.appendChild(d.note); }
   }
 
   withPhotos.forEach(s => {

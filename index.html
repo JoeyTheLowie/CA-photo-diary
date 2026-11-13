@@ -104,12 +104,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .note.n7{grid-column:span 7}
 .note.solo-note{grid-column:2/-2;padding-block:16px}
 .pp{grid-column:span 6;aspect-ratio:4/5}
-.note.story{padding:28px 0 8px;gap:0;max-width:none}
-.note.story p{font-size:clamp(17px,1.35vw,20px);line-height:1.6;font-weight:400;letter-spacing:-.005em;max-width:62ch;text-wrap:pretty;color:rgba(237,232,224,.92)}
-.note.story p+p{margin-top:.9em}
-.note.story span{display:block;margin-top:14px;max-width:62ch}
 .solo{grid-column:4/10;aspect-ratio:4/5}
-.note p{margin:0;font-size:clamp(22px,2.4vw,32px);line-height:1.22;font-weight:500;letter-spacing:-.02em;text-wrap:balance}
+.note p{margin:0}
+.note .q{font-size:clamp(22px,2.4vw,32px);line-height:1.22;font-weight:500;letter-spacing:-.02em;text-wrap:balance}
+.note .body{font-size:clamp(16px,1.25vw,18px);line-height:1.6;color:rgba(237,232,224,.85);max-width:62ch;text-wrap:pretty}
+.note.tile{max-width:none;padding:0 clamp(16px,3vw,48px);min-width:0;overflow:hidden}
 .note span{font-size:14px;color:var(--grey)}
 @media (max-width:760px){
   .full{aspect-ratio:4/3}
