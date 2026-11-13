@@ -120,7 +120,7 @@ for (const f of (await fs.readdir(NOTES).catch(() => [])).sort()) {
   const lines = (await fs.readFile(path.join(NOTES, f), 'utf8')).trim().split('\n');
   let caption = '';
   if (lines.length > 1 && /^\s*(—|--|–)\s*/.test(lines.at(-1))) caption = lines.pop().replace(/^\s*(—|--|–)\s*/, '').trim();
-  const text = lines.join(' ').replace(/\s+/g, ' ').trim();
+  const text = lines.join('\n').split(/\n\s*\n/).map(par => par.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
   if (!text) continue;
   diary.notes.push({date: m[1], stop: m[2] && stopIds.has(m[2]) ? m[2] : stopFor(m[1]), text, caption});
 }

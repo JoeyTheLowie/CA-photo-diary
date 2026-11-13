@@ -45,11 +45,12 @@ function render(trip, diary) {
   function recipe(list, note) {
     const L = p => p.w / p.h >= 1.15, P = p => p.w / p.h < .9;
     const out = [], rest = [...list];
-    const hi = rest.findIndex(p => p.hero);
-    if (hi >= 0) out.push(['full', rest.splice(hi, 1)[0]]);
-    else if (rest.length >= 4) { const i = rest.findIndex(L); if (i >= 0) out.push(['full', rest.splice(i, 1)[0]]); }
+    const heroes = rest.filter(p => p.hero);
+    heroes.forEach(h => { rest.splice(rest.indexOf(h), 1); out.push([P(h) ? 'solo' : 'full', h]); });
+    if (!heroes.length && rest.length >= 4) { const i = rest.findIndex(L); if (i >= 0) out.push(['full', rest.splice(i, 1)[0]]); }
     let tail = null;
-    if (note && rest.length && rest.length % 2 === 0) { tail = note; note = null; }
+    const isStory = note && (note.text.length > 180 || note.text.includes('\n') || (note.caption || '').length > 120);
+    if (note && (isStory || (rest.length && rest.length % 2 === 0))) { tail = note; note = null; }
     if (note) {
       if (rest.length) { const p = rest.shift(); out.push(...(P(p) ? [['port', p], ['note n7', note]] : [['wide', p], ['note', note]])); }
       else out.push(['note solo-note', note]);
@@ -69,7 +70,7 @@ function render(trip, diary) {
         out.push(['big', big], ['side', g[0]], ['side', g[1]]);
       } else out.push(['third', g[0]], ['third', g[1]], ['third', g[2]]);
     }
-    if (tail) out.push(['note solo-note', tail]);
+    if (tail) out.push([isStory ? 'note story' : 'note solo-note', tail]);
     return out;
   }
 
@@ -102,9 +103,9 @@ function render(trip, diary) {
       recipe(list, note).forEach(([cls, it]) => {
         if (cls.startsWith('note')) {
           const el = document.createElement('div'); el.className = cls;
-          el.innerHTML = '<p></p>' + (it.caption ? '<span></span>' : '');
-          el.querySelector('p').textContent = it.text;
-          if (it.caption) el.querySelector('span').textContent = it.caption;
+          const longCap = (it.caption || '').length > 120;
+          (it.text + (longCap ? '\n\n' + it.caption : '')).split(/\n\s*\n/).forEach(par => { const q = document.createElement('p'); q.textContent = par.trim(); el.appendChild(q); });
+          if (it.caption && !longCap) { const c = document.createElement('span'); c.textContent = it.caption; el.appendChild(c); }
           m.appendChild(el);
         } else m.appendChild(figure(cls, it, s));
       });
