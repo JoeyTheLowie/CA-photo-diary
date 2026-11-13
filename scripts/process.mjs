@@ -3,7 +3,8 @@
 //   inbox/<anything>.jpg            a photo (JPEG, PNG, WebP or TIFF)
 //   inbox/<anything>.json           optional sidecar: {"caption", "size": "normal|big|header", "stop", "taken": "2026-12-01T23:41", "exif"}
 //   inbox/<stop-id>/<anything>.jpg  a subfolder named after a stop forces that stop
-//   notes/2026-12-01.md             a short note for that day; a last line starting with "—" becomes its caption
+//   layouts/<stop-id>.json          a location's page, made on the post page (compiled into diary.layouts)
+//   trash/<hash>                    remove that photo
 //
 // For every photo: rotate upright, strip all metadata (GPS included), write AVIF at 640/1280/2048 px wide,
 // a 2048 px JPEG fallback and a tiny blurred placeholder, then remove it from inbox/.
@@ -113,34 +114,31 @@ for (const file of files) {
 for (const p of diary.photos) if (!p.stopFixed || !stopIds.has(p.stop)) { p.stop = stopFor(p.date); delete p.stopFixed; }
 diary.photos.sort((a, b) => (a.date + a.time + a.id).localeCompare(b.date + b.time + b.id));
 
-// Notes are rebuilt from notes/ every run, so editing or deleting a file there is enough.
-diary.notes = [];
-for (const f of (await fs.readdir(NOTES).catch(() => [])).sort()) {
-  const m = f.match(/^(\d{4}-\d\d-\d\d)(?:-([a-z0-9-]+))?\.md$/);
-  if (!m) continue;
-  const blocks = (await fs.readFile(path.join(NOTES, f), 'utf8')).trim().split(/\n\s*-{3,}\s*\n/);
-  blocks.forEach((block, i) => {
-    const lines = block.trim().split('\n');
-    let heading = '';
-    if (/^#\s+/.test(lines[0])) heading = lines.shift().replace(/^#\s+/, '').trim();
-    let caption = '';
-    if (lines.length > 1 && /^\s*(—|--|–)\s/.test(lines.at(-1))) caption = lines.pop().replace(/^\s*(—|--|–)\s*/, '').trim();
-    const text = lines.join('\n').split(/\n\s*\n/).map(par => par.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
-    if (text || heading) diary.notes.push({date: m[1], stop: m[2] && stopIds.has(m[2]) ? m[2] : stopFor(m[1]), heading, text, caption, i});
-  });
+// Photos removed from the tray on the post page: trash/<hash> marks a photo for deletion.
+const TRASH = path.join(ROOT, 'trash');
+const trash = (await fs.readdir(TRASH).catch(() => [])).filter(f => /^[0-9a-f]{8}$/.test(f));
+if (trash.length) {
+  const gone = new Set(trash);
+  const before = diary.photos.length;
+  diary.photos = diary.photos.filter(p => !gone.has(p.hash));
+  for (const f of trash) await fs.rm(path.join(TRASH, f), {force: true});
+  console.log(`- removed ${before - diary.photos.length} photo(s) from the tray`);
 }
 
-// Layouts: layouts/YYYY-MM-DD.json is the day's layout from the post page's layout builder.
-// Rows refer to photos by hash: {"rows": [{"t": "full|single|row|photo-text|quote|text", "p": [hash...], "side": "left|right", "h": "heading", "b": "text"}]}
+// Layouts: layouts/<stop-id>.json is one location's page, built on the post page.
+// {"blocks": [{"id", "t": "full|single|row|photo-text|mosaic|quote|text", "p": [hash or null...], "side": "left|right", "h", "b"}],
+//  "desktop": [block ids] (optional, a different order on wide screens), "captions": {hash: text}}
+// Only photos placed in a block are shown on the site; the rest wait in the tray.
+diary.notes = [];
 diary.layouts = {};
 const LAYOUTS = path.join(ROOT, 'layouts');
 for (const f of (await fs.readdir(LAYOUTS).catch(() => [])).sort()) {
-  const m = f.match(/^(\d{4}-\d\d-\d\d)\.json$/);
-  if (!m) continue;
+  const m = f.match(/^([a-z0-9-]+)\.json$/);
+  if (!m || !stopIds.has(m[1])) continue;
   try {
     const L = JSON.parse(await fs.readFile(path.join(LAYOUTS, f), 'utf8'));
-    const rows = (L.rows || []).filter(r => r && typeof r.t === 'string');
-    if (rows.length) diary.layouts[m[1]] = {stop: stopFor(m[1]), rows};
+    const blocks = (L.blocks || []).filter(b => b && typeof b.t === 'string');
+    if (blocks.length) diary.layouts[m[1]] = {blocks, ...(Array.isArray(L.desktop) ? {desktop: L.desktop} : {}), captions: L.captions || {}};
   } catch (e) { console.warn(`! layouts/${f}: ${e.message}`); }
 }
 
@@ -149,9 +147,9 @@ const keep = new Set(diary.photos.map(p => p.id));
 let removed = 0;
 for (const f of await fs.readdir(IMG)) {
   if (f.startsWith('.')) continue;
-  const id = f.replace(/(-\d+)?\.(avif|jpg)$/, '');
+  const id = f.replace(/-\d+\.avif$/, '').replace(/\.jpg$/, '');   /* careful: a hash can be all digits */
   if (!keep.has(id)) { await fs.rm(path.join(IMG, f)); removed++; }
 }
 
 await fs.writeFile(DIARY, JSON.stringify(diary, null, 1) + '\n');
-console.log(`Done: ${added} new photo(s), ${diary.photos.length} in total, ${diary.notes.length} note(s), ${Object.keys(diary.layouts).length} layout(s)${removed ? `, ${removed} old file(s) removed` : ''}.`);
+console.log(`Done: ${added} new photo(s), ${diary.photos.length} in total, ${Object.keys(diary.layouts).length} layout(s)${removed ? `, ${removed} old file(s) removed` : ''}.`);

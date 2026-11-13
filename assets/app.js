@@ -1,4 +1,4 @@
-/* Photo diary: reads data/trip.json (route) and data/diary.json (photos + notes, built by scripts/process.mjs)
+/* Photo diary: reads data/trip.json (route) and data/diary.json (photos + each location's blocks, built by scripts/process.mjs)
    and renders the ridgeline, the stops (newest first) and the lightbox. */
 (function () {
 'use strict';
@@ -7,21 +7,21 @@ const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const D = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
 const nf = new Intl.NumberFormat('en-GB');
-const fmtDay = d => d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
 const fmtShort = d => d.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
 const fmtRange = (a, b) => a.getMonth() === b.getMonth()
   ? `${a.getDate()}–${b.getDate()} ${a.toLocaleDateString('en-GB', {month:'short'})}`
   : `${fmtShort(a)} – ${fmtShort(b)}`;
 
 const noCache = {cache: 'no-cache'};
-/* ?preview: the post page shows one day in an iframe and sends it the day's photos and layout as they change */
+/* ?preview: the post page shows one location in an iframe, sends it the photos and blocks as they change, and edits them in place (assets/editor.js) */
 const PREVIEW = /[?&]preview/.test(location.search);
 let relayout = () => {};
 addEventListener('resize', (() => { let t; return () => { clearTimeout(t); t = setTimeout(() => relayout(), 100); }; })());
 if (PREVIEW) {
   document.documentElement.classList.add('preview');
-  fetch('data/trip.json', noCache).then(r => r.json()).then(trip => {
-    addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.diary) render(trip, e.data.diary); });
+  const editor = /[?&]edit/.test(location.search) ? new Promise(res => { const s = document.createElement('script'); s.src = 'assets/editor.js'; s.onload = s.onerror = res; document.head.appendChild(s); }) : null;
+  Promise.all([fetch('data/trip.json', noCache).then(r => r.json()), editor]).then(([trip]) => {
+    addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.diary) { window.__edit = e.data.edit || null; render(trip, e.data.diary, e.data.edit || null); } });
     parent.postMessage({previewReady: true}, location.origin);
   });
 } else Promise.all([
@@ -29,7 +29,9 @@ if (PREVIEW) {
   fetch('data/diary.json', noCache).then(r => r.ok ? r.json() : {}).catch(() => ({}))
 ]).then(([trip, diary]) => render(trip, diary || {}));
 
-function render(trip, diary) {
+const LB = new Map();   /* photo id -> what the lightbox shows */
+let openLb = () => {};
+function render(trip, diary, EDIT) {
   const STOPS = trip.stops;
   const TRIP_START = D(trip.start), TRIP_DAYS = trip.days, END = D(trip.end);
   const q = new URLSearchParams(location.search).get('today');
@@ -37,10 +39,8 @@ function render(trip, diary) {
   const TODAY = q ? D(q) : new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayNo = d => Math.round((d - TRIP_START) / 864e5) + 1;
   const stopById = Object.fromEntries(STOPS.map(s => [s.id, s]));
-  const photos = (diary.photos || []).filter(p => stopById[p.stop]);
-  const layouts = Object.fromEntries(Object.entries(diary.layouts || {}).filter(([, L]) => stopById[L.stop]));
-  /* a day with a layout from the post page takes its texts from that layout, not from notes/ */
-  const notes = (diary.notes || []).filter(n => stopById[n.stop] && !layouts[n.date]);
+  const photos = diary.photos || [];
+  const layouts = Object.fromEntries(Object.entries(diary.layouts || {}).filter(([id, L]) => stopById[id] && L && Array.isArray(L.blocks)));
 
   /* ---------- texts (editable on the post page, stored in trip.json) ---------- */
   const X = trip.texts || {};
@@ -54,202 +54,144 @@ function render(trip, diary) {
   $('dayCount').textContent = dn < 1 ? `Starts in ${1 - dn} day${dn === 0 ? '' : 's'}`
     : dn > TRIP_DAYS ? `${TRIP_DAYS} days, all done` : `Day ${dn} of ${TRIP_DAYS}`;
 
-  /* ---------- stops, newest first; days newest first; photos in the order they were taken ---------- */
-  const layoutDays = Object.entries(layouts).map(([date, L]) => ({date, stop: L.stop}));
-  const used = new Set([...photos.map(p => p.stop), ...notes.map(n => n.stop), ...layoutDays.map(x => x.stop)]);
-  const withPhotos = STOPS.filter(s => used.has(s.id)).reverse();
-  const host = $('stops'); const ALL = []; host.textContent = '';
-  const GAP = 8, DAYS = []; let noteCount = 0;
-  const sizeOf = p => p.size || (p.hero ? 'big' : 'normal');
+  /* ---------- locations, newest first. Each location is a list of blocks made on the post page;
+     only photos placed in a block are shown. ---------- */
+  const host = $('stops'); host.textContent = '';
+  const GAP = 8, PAGES = [];
+  const byHash = new Map(photos.map(p => [p.hash, p]));
+  const hasContent = L => L && L.blocks.some(b => (b.p || []).some(h => h && byHash.has(h)) || (b.h || '').trim() || (b.b || '').trim());
+  const withPhotos = (EDIT ? STOPS.filter(s => s.id === EDIT.stop) : STOPS.filter(s => hasContent(layouts[s.id]))).reverse();
+  const shown = new Set(withPhotos.flatMap(s => layouts[s.id] ? layouts[s.id].blocks.flatMap(b => b.p || []) : []).filter(h => h && byHash.has(h)));
 
-  /* Justified rows: every row fills the full width and photos keep their shape.
-     "Big" photos get a row of their own (a big portrait shares it with one other photo). */
-  function rowsFor(list, Wc) {
-    const T = Wc < 600 ? Wc * .82 : Math.min(Math.max(Wc * .36, 300), 620);   /* target row height */
-    const maxH = Wc < 600 ? innerHeight * .8 : Math.min(innerHeight * .85, Wc * .9);
-    const ar = p => p.w / p.h, hOf = r => (Wc - GAP * (r.length - 1)) / r.reduce((a, p) => a + ar(p), 0);
-    const rows = [], pend = [], used = new Set(); let row = [];
-    const close = r => { rows.push(r); rows.push(...pend.splice(0)); };
-    list.forEach((p, idx) => {
-      if (used.has(p)) return;
-      if (!p.tile && sizeOf(p) === 'big') {
-        if (ar(p) >= 1.15) pend.push([p]);
-        else { const q = list.find((x, k) => k > idx && !x.tile && !used.has(x) && (sizeOf(x) !== 'big' || ar(x) < 1.15)); if (q) used.add(q); pend.push(q ? [p, q] : [p]); }
-        if (!row.length) rows.push(...pend.splice(0));
-        return;
-      }
-      row.push(p);
-      const h = hOf(row);
-      if (h <= T) {
-        if (row.length > 1 && !(row.length === 2 && row[0].tile) && Math.abs(hOf(row.slice(0, -1)) - T) < Math.abs(h - T)) { close(row.slice(0, -1)); row = [p]; }
-        else { close(row); row = []; }
-      }
-    });
-    if (row.length) {
-      const last = rows[rows.length - 1];
-      const lastBig = last && last.some(x => !x.tile && sizeOf(x) === 'big');
-      if (hOf(row) > T * 1.35 && last && !lastBig && !pend.length && hOf(last.concat(row)) > T * .55) rows[rows.length - 1] = last.concat(row);
-      else rows.push(row);
-    }
-    rows.push(...pend);
-    return rows.map(r => ({r, h: Math.min(hOf(r), maxH)}));
-  }
-
-  function figure(p, s) {
+  function figure(p, s, caption) {
     const base = 'img/' + p.id;
     const f = document.createElement('figure');
-    if (p.src) {   /* preview: a photo that is not uploaded yet */
-      f.className = 'ph'; f.innerHTML = `<picture><source srcset=""><img class="in" src="${p.src}" width="${p.w}" height="${p.h}" alt=""></picture>`;
-      return f;
-    }
-    f.className = 'ph'; f.tabIndex = 0; f.setAttribute('role', 'button');
-    f.setAttribute('aria-label', p.caption || `Photo from ${s.name}`);
+    f.className = 'ph'; f.dataset.pid = p.id;
     if (p.lqip) f.style.backgroundImage = `url(${p.lqip})`;
-    f.innerHTML = `<picture><source type="image/avif" srcset="${p.sizes.map(w => `${base}-${w}.avif ${w}w`).join(', ')}" sizes="100vw"><img src="${base}.jpg" width="${p.w}" height="${p.h}" alt="${esc(p.caption)}" loading="lazy" decoding="async"></picture>`;
-    const idx = ALL.length;
-    ALL.push({p, title: p.caption || s.name, where: s.name, when: `${fmtShort(D(p.date))}${p.time ? ', ' + p.time : ''}`, exif: p.exif});
-    f.addEventListener('click', () => openLb(idx));
-    f.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openLb(idx); } });
+    if (p.src) f.innerHTML = `<picture><source srcset=""><img src="${p.src}" width="${p.w}" height="${p.h}" alt=""></picture>`;   /* editor: not uploaded yet */
+    else f.innerHTML = `<picture><source type="image/avif" srcset="${p.sizes.map(w => `${base}-${w}.avif ${w}w`).join(', ')}" sizes="100vw"><img src="${base}.jpg" width="${p.w}" height="${p.h}" alt="${esc(caption)}" loading="lazy" decoding="async"></picture>`;
+    if (!EDIT) {
+      f.tabIndex = 0; f.setAttribute('role', 'button'); f.setAttribute('aria-label', caption || `Photo from ${s.name}`);
+      LB.set(p.id, {p, title: caption || s.name, caption, where: s.name, when: p.src ? '' : `${fmtShort(D(p.date))}${p.time ? ', ' + p.time : ''}`, exif: p.exif});
+      f.addEventListener('click', () => openLb(f));
+      f.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openLb(f); } });
+    }
+    const im = f.querySelector('img');
+    if (im.complete && im.naturalWidth) im.classList.add('in'); else im.addEventListener('load', () => im.classList.add('in'), {once: true});
     return f;
   }
-  /* A note is a heading (big, bold) and/or text. */
+  /* A note is a heading (big, bold) and/or text. In the editor both are always there, editable in place. */
   function noteEl(it) {
     const pars = (it.text || '').split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
-    const longCap = (it.caption || '').length > 120;
-    if (longCap) pars.push(it.caption.trim());
-    let head = it.heading || '';
-    if (!head && !it.exact && pars.length && pars[0].length <= 140 && (pars.length > 1 || longCap || pars[0].length <= 90)) head = pars.shift();
+    const head = it.heading || '';
     const el = document.createElement('div'); el.className = 'note';
-    const hd = document.createElement('div'); hd.className = 'h';
-    if (head) { const q = document.createElement('p'); q.className = 'q'; q.textContent = head; hd.appendChild(q); }
-    if (it.caption && !longCap) { const c = document.createElement('span'); c.textContent = it.caption; hd.appendChild(c); }
-    const bd = document.createElement('div'); bd.className = 'b';
-    pars.forEach(par => { const q = document.createElement('p'); q.className = 'body'; q.textContent = par; bd.appendChild(q); });
-    if (hd.childNodes.length) el.appendChild(hd);
-    if (pars.length) el.appendChild(bd);
+    if (EDIT) {
+      el.innerHTML = `<div class="h"><p class="q" data-f="h" data-ph="${it.quote ? 'Your quote' : 'Heading'}"></p></div>${it.quote ? '' : '<div class="b"><p class="body" data-f="b" data-ph="Text"></p></div>'}`;
+      el.querySelector('[data-f=h]').textContent = head;
+      if (!it.quote) el.querySelector('[data-f=b]').textContent = pars.join('\n\n');
+      el._head = true; el._body = !it.quote; el._len = Math.max(60, (head + ' ' + pars.join(' ')).trim().length);
+      return el;
+    }
+    if (head) { const hd = document.createElement('div'); hd.className = 'h'; const q = document.createElement('p'); q.className = 'q'; q.textContent = head; hd.appendChild(q); el.appendChild(hd); }
+    if (pars.length) { const bd = document.createElement('div'); bd.className = 'b'; pars.forEach(par => { const q = document.createElement('p'); q.className = 'body'; q.textContent = par; bd.appendChild(q); }); el.appendChild(bd); }
     el._head = !!head; el._body = pars.length > 0; el._len = (head + ' ' + pars.join(' ')).trim().length;
     return el;
   }
-  /* A note without photos next to it: a short heading becomes a centred quote; otherwise heading left, text right. */
+  /* A text without photos: a heading only is a centred quote; otherwise heading left, text right. */
   const standalone = n => 'note ' + (!n._body ? 'pull' : n._head ? 'spread' : 'spread only-body');
-  function photoRow(d, r, h, Wc) {
-    const row = document.createElement('div'); row.className = 'jrow'; row.style.height = Math.round(h) + 'px';
-    r.forEach(p => {
-      if (p.tile) { p.el.style.flex = `${p.w} 1 0`; row.appendChild(p.el); return; }
-      const f = d.figs.get(p); const w = r.length === 1 ? Math.min(Wc, Math.max(p.w / p.h * h, Wc * .5)) : p.w / p.h * h;
-      f.classList.remove('header');
-      f.style.flex = r.length === 1 ? '1 1 0' : `${(p.w / p.h).toFixed(4)} 1 0`; f.classList.toggle('fit', r.length === 1 && p.w / p.h < Wc / h * .7);
-      f.querySelector('source').sizes = Math.ceil(w) + 'px'; row.appendChild(f);
-    });
-    return row;
-  }
-  function headerEl(d, p) {
-    const wrap = document.createElement('div'); wrap.className = 'hdr';
-    const f = d.figs.get(p); f.style.flex = ''; f.classList.remove('fit'); f.classList.add('header');
-    f.querySelector('source').sizes = '100vw'; wrap.appendChild(f); return wrap;
-  }
-  /* A day laid out by hand on the post page: rows in the order Joe chose. Photos he didn't place follow, laid out automatically. */
-  function layoutCustom(d, Wc) {
-    const wide = Wc >= 760, phone = Wc < 600, byHash = new Map(d.list.map(p => [p.hash, p])), placed = new Set();
-    const maxH = phone ? innerHeight * .8 : Math.min(innerHeight * .85, Wc * .9);
-    const ar = p => p.w / p.h, add = el => d.el.appendChild(el);
-    const get = (hs, n = 9) => (hs || []).map(h => byHash.get(h)).filter(p => p && !placed.has(p)).slice(0, n).map(p => (placed.add(p), p));
-    const justified = ps => (Wc - GAP * (ps.length - 1)) / ps.reduce((a, p) => a + ar(p), 0);
-    const sideBySide = ps => {
-      /* phones: four photos become two rows of two */
-      const chunks = phone && ps.length === 4 ? [ps.slice(0, 2), ps.slice(2)] : [ps];
-      chunks.forEach(c => add(photoRow(d, c, Math.min(justified(c), maxH), Wc)));
-    };
-    const textOf = r => noteEl({heading: (r.h || '').trim(), text: (r.b || '').trim(), exact: true});
-    d.layout.forEach(r => {
-      if (r.t === 'full') { const [p] = get(r.p, 1); if (p) add(headerEl(d, p)); }
-      else if (r.t === 'single') { const [p] = get(r.p, 1); if (p) add(photoRow(d, [p], Math.min(Wc / ar(p), maxH), Wc)); }
-      else if (r.t === 'row') { const ps = get(r.p, 4); if (ps.length) sideBySide(ps); }
-      else if (r.t === 'photo-text') {
-        const ps = get(r.p, 3), note = textOf(r), right = r.side === 'right';
-        if (!note._len) { if (ps.length) sideBySide(ps); return; }
-        if (!ps.length) { note.className = standalone(note); add(note); return; }
-        if (wide) {
-          const sum = ps.reduce((a, p) => a + ar(p), 0);
-          note.className = 'note tile' + (right ? ' right' : '');
-          const tile = {tile: true, el: note, w: Math.min(note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, Math.max(.6, sum * .75)), h: 1};
-          const r2 = right ? [...ps, tile] : [tile, ...ps];
-          add(photoRow(d, r2, Math.min((Wc - GAP * (r2.length - 1)) / (sum + tile.w), maxH), Wc));
-        } else {
-          note.className = 'note';   /* phones: text above the photos when it sits left, below when it sits right */
-          if (!right) add(note); sideBySide(ps); if (right) add(note);
-        }
-      }
-      else if (r.t === 'quote') { const note = textOf({h: r.h || r.b}); if (note._len) { note.className = 'note pull'; add(note); } }
-      else if (r.t === 'text') { const note = textOf(r); if (note._len) { note.className = standalone(note); add(note); } }
-    });
-    const rest = d.list.filter(p => !placed.has(p));
-    rest.filter(p => sizeOf(p) === 'header').forEach(p => add(headerEl(d, p)));
-    rowsFor(rest.filter(p => sizeOf(p) !== 'header'), Wc).forEach(({r, h}) => add(photoRow(d, r, h, Wc)));
-  }
-  function layoutDay(d) {
-    const Wc = d.el.clientWidth; if (!Wc || Wc === d.w) return; d.w = Wc;
-    d.el.textContent = '';
-    if (d.layout) return layoutCustom(d, Wc);
-    const wide = Wc >= 760;
-    const headers = d.list.filter(p => sizeOf(p) === 'header'), rest = d.list.filter(p => sizeOf(p) !== 'header');
-    if (headers[0]) d.el.appendChild(headerEl(d, headers[0]));
-    /* The first group is photos only, so every day opens with a full row of pictures.
-       After that each note gets its own group and sits inside its first row, alternating left and right. */
-    /* Groups: the first one is photos only (about a full row), then one group per note with enough
-       photos to sit beside it. Notes left without photos get a section of their own at the end. */
-    const ar = p => p.w / p.h, segs = [];
-    let k = 0;
-    const take = (need, normalsOnly) => { const out = []; let sum = 0;
-      while (k < rest.length && sum < need) { const p = rest[k++]; out.push(p); if (!normalsOnly || sizeOf(p) === 'normal') sum += ar(p); }
-      return out; };
-    segs.push({ph: take(d.notes.length ? 2.2 : Infinity, false)});
-    d.notes.forEach((note, i) => segs.push({ph: take(1.3, true), note, side: 0}));
-    if (k < rest.length) segs[segs.length - 1].ph.push(...rest.slice(k));
-    let t = d.side0; segs.forEach(sg => { if (sg.note && sg.ph.length) sg.side = t++ % 2; });
-    const loose = [];
-    segs.forEach(({ph, note, side}) => {
-      let tile = null, partners = [], others = ph;
-      if (note) {
-        note.style.flex = '';
-        const normals = ph.filter(p => sizeOf(p) === 'normal');
-        let sum = 0; for (const p of normals) { if (sum >= 1.3 || partners.length === 3) break; partners.push(p); sum += ar(p); }
-        if (partners.length && wide && note._len <= 520) {
-          note.className = 'note tile' + (side ? ' right' : '');
-          tile = {tile: true, el: note, w: Math.min(note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, Math.max(.6, sum * .75)), h: 1};
-          others = ph.filter(p => !partners.includes(p));
-        } else note.className = standalone(note);
-      }
-      /* the note shares its row with normal photos only; the rest of the group follows */
-      const rows = tile ? [...rowsFor([tile, ...partners], Wc), ...rowsFor(others, Wc)] : rowsFor(ph, Wc);
-      if (tile && side) rows.forEach(x => { if (x.r.includes(tile)) x.r = [...x.r.filter(p => p !== tile), tile]; });
-      rows.forEach(({r, h}, i) => {
-        d.el.appendChild(photoRow(d, r, h, Wc));
-        if (i === 0 && note && !tile && ph.length) d.el.appendChild(note);   /* phones: the note follows the group's first row */
+
+  /* one block of a location: returns its element, or null when it has nothing to show */
+  const ar = x => x.w / x.h;
+  function blockEl(pg, b, Wc, wide, phone, maxH) {
+    const el = document.createElement('div'); el.className = 'blk blk-' + b.t;
+    const add = x => el.appendChild(x);
+    const capOf = h => (pg.captions && pg.captions[h]) || (byHash.get(h) || {}).caption || '';
+    /* photo spots: real photos, and in the editor empty spots too */
+    const spots = (b.p || []).map((h, j) => {
+      const p = h && byHash.get(h);
+      if (p) { let f = pg.figs.get(h + '|' + b.id + '|' + j); if (!f) { f = figure(p, pg.stop, capOf(h)); pg.figs.set(h + '|' + b.id + '|' + j, f); } f.dataset.slot = j; f.classList.remove('slot'); return {p, el: f, j}; }
+      if (!EDIT) return null;
+      const f = document.createElement('div'); f.className = 'ph slot'; f.dataset.slot = j;
+      return {p: {w: b.t === 'full' ? 16 : 3, h: b.t === 'full' ? 9 : 2}, el: f, j};
+    }).filter(Boolean);
+    const just = list => (Wc - GAP * (list.length - 1)) / list.reduce((a, x) => a + ar(x.p), 0);
+    const sizes = (f, w) => { const s = f.querySelector('source'); if (s && s.type) s.sizes = Math.ceil(w) + 'px'; };
+    const row = (items, h) => {
+      const r = document.createElement('div'); r.className = 'jrow'; r.style.height = Math.round(h) + 'px';
+      items.forEach(it => {
+        if (it.tile) { it.el.style.flex = `${it.w} 1 0`; r.appendChild(it.el); return; }
+        const f = it.el; f.classList.remove('header');
+        f.style.flex = items.length === 1 ? '1 1 0' : `${ar(it.p).toFixed(4)} 1 0`;
+        f.classList.toggle('fit', items.length === 1 && ar(it.p) < Wc / h * .7);
+        sizes(f, items.length === 1 ? Wc : ar(it.p) * h); r.appendChild(f);
       });
-      if (note && !note.parentNode) loose.push(note);
-    });
-    headers.slice(1).forEach(p => d.el.appendChild(headerEl(d, p)));
-    loose.forEach(n => d.el.appendChild(n));
+      return r;
+    };
+    const sideBySide = list => (phone && list.length === 4 ? [list.slice(0, 2), list.slice(2)] : [list]).forEach(c => add(row(c, Math.min(just(c), maxH))));
+    const textOf = (quote) => noteEl({heading: (b.h || '').trim(), text: quote ? '' : (b.b || '').trim(), quote});
+    if (b.t === 'full') {
+      if (!spots[0]) return null;
+      const w = document.createElement('div'); w.className = 'hdr'; const f = spots[0].el;
+      f.style.flex = ''; f.classList.remove('fit'); f.classList.add('header'); sizes(f, Wc); w.appendChild(f); add(w);
+    } else if (b.t === 'single') {
+      if (!spots[0]) return null;
+      add(row([spots[0]], Math.min(Wc / ar(spots[0].p), maxH)));
+    } else if (b.t === 'row') {
+      if (!spots.length) return null;
+      sideBySide(spots);
+    } else if (b.t === 'mosaic') {
+      if (spots.length < 3) { if (!spots.length) return null; sideBySide(spots); return el; }
+      /* one big photo and two stacked: heights solved so both columns end level */
+      const [big, s1, s2] = spots, k = 1 / ar(s1.p) + 1 / ar(s2.p), a0 = ar(big.p);
+      const H = Math.min((Wc - GAP + GAP / k) / (a0 + 1 / k), maxH);
+      const m = document.createElement('div'); m.className = 'mosaic'; m.style.height = Math.round(H) + 'px';
+      const colB = document.createElement('div'); colB.className = 'col'; colB.style.flex = `${a0.toFixed(4)} 1 0`;
+      const colS = document.createElement('div'); colS.className = 'col'; colS.style.flex = `${(1 / k).toFixed(4)} 1 0`;
+      [big, s1, s2].forEach(it => { it.el.classList.remove('fit', 'header'); it.el.style.flex = ''; });
+      big.el.style.flex = '1 1 0'; colB.appendChild(big.el); sizes(big.el, a0 * H);
+      [s1, s2].forEach(it => { it.el.style.flex = `${(1 / ar(it.p)).toFixed(4)} 1 0`; colS.appendChild(it.el); sizes(it.el, H / k); });
+      if (b.side === 'right') m.append(colS, colB); else m.append(colB, colS);
+      add(m);
+    } else if (b.t === 'photo-text') {
+      const note = textOf(false), right = b.side === 'right';
+      if (!note._len) { if (!spots.length) return null; sideBySide(spots); return el; }
+      if (!spots.length) { note.className = standalone(note); add(note); return el; }
+      if (wide) {
+        const sum = spots.reduce((a, x) => a + ar(x.p), 0);
+        note.className = 'note tile' + (right ? ' right' : '');
+        const tile = {tile: true, el: note, w: Math.min(note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, Math.max(.6, sum * .75))};
+        const items = right ? [...spots, tile] : [tile, ...spots];
+        add(row(items, Math.min((Wc - GAP * (items.length - 1)) / (sum + tile.w), maxH)));
+      } else {
+        note.className = 'note';   /* phones: text above the photos when it sits left, below when it sits right */
+        if (!right) add(note); sideBySide(spots); if (right) add(note);
+      }
+    } else if (b.t === 'quote') {
+      const note = textOf(true); if (!note._len) return null; note.className = 'note pull'; add(note);
+    } else if (b.t === 'text') {
+      const note = textOf(false); if (!note._len) return null; note.className = standalone(note); add(note);
+    } else return null;
+    return el;
+  }
+  /* wide screens may use their own order ("Deviate on desktop" on the post page) */
+  function layoutPage(pg, force) {
+    const Wc = pg.el.clientWidth; if (!Wc || (Wc === pg.w && !force)) return; pg.w = Wc;
+    pg.el.textContent = '';
+    const wide = Wc >= 760, phone = Wc < 600, desk = innerWidth >= 900;
+    const maxH = phone ? innerHeight * .8 : Math.min(innerHeight * .85, Wc * .9);
+    const ids = desk && pg.desktop ? pg.desktop : null;
+    const order = ids ? ids.map(id => pg.blocks.find(b => b.id === id)).filter(Boolean).concat(pg.blocks.filter(b => !ids.includes(b.id))) : pg.blocks;
+    order.forEach((b, i) => { const el = blockEl(pg, b, Wc, wide, phone, maxH); if (el) { el.dataset.id = b.id || ''; el.dataset.i = i; pg.el.appendChild(el); } });
   }
 
   withPhotos.forEach(s => {
     const sec = document.createElement('section'); sec.className = 'stop'; sec.id = s.id;
     const altTxt = s.peak ? `${s.peak}, ${nf.format(s.alt)} m` : `${nf.format(s.alt)} m`;
     sec.innerHTML = `<div class="stop-head"><h2>${esc(s.name)}</h2><div class="meta">${esc(s.country)}<span class="dot">·</span>${fmtRange(D(s.from), D(s.to))}<span class="dot">·</span>${esc(altTxt)}</div></div>`;
-    const dates = [...new Set([...photos, ...notes, ...layoutDays].filter(x => x.stop === s.id).map(x => x.date))].sort().reverse();
-    dates.forEach(date => {
-      const d = D(date), day = document.createElement('div'); day.className = 'day';
-      const n = dayNo(d);
-      day.innerHTML = `<div class="day-label">${fmtDay(d)}${n >= 1 && n <= TRIP_DAYS ? `<span>Day ${n}</span>` : ''}</div>`;
-      const list = photos.filter(p => p.stop === s.id && p.date === date).sort((a, b) => (a.batch && a.batch === b.batch ? a.seq - b.seq : 0) || (a.time || '').localeCompare(b.time || '') || a.id.localeCompare(b.id));
-      const dayNotes = notes.filter(x => x.stop === s.id && x.date === date).sort((a, b) => (a.i || 0) - (b.i || 0));
-      const m = document.createElement('div'); m.className = 'rows';
-      const L = layouts[date] && layouts[date].stop === s.id ? layouts[date].rows : null;
-      DAYS.push({el: m, list, figs: new Map(list.map(p => [p, figure(p, s)])), notes: dayNotes.map(noteEl), side0: (noteCount += dayNotes.length) - dayNotes.length, layout: L, w: 0});
-      day.appendChild(m); sec.appendChild(day);
-    });
-    host.appendChild(sec);
+    const L = layouts[s.id] || {blocks: []};
+    const m = document.createElement('div'); m.className = 'rows';
+    PAGES.push({el: m, stop: s, blocks: L.blocks, desktop: L.desktop || null, captions: L.captions || {}, figs: new Map(), w: 0});
+    sec.appendChild(m); host.appendChild(sec);
   });
   const nextStop = STOPS.find(s => D(s.from) > TODAY);
   if (!withPhotos.length) {
@@ -261,11 +203,9 @@ function render(trip, diary) {
     p.innerHTML = `Next up: <b>${esc(nextStop.name)}</b>, from ${D(nextStop.from).toLocaleDateString('en-GB', {day:'numeric', month:'long'})}.`;
     host.prepend(p);
   }
-  const layoutAll = () => DAYS.forEach(layoutDay);
-  layoutAll(); relayout = layoutAll;
-  document.fonts && document.fonts.ready.then(layoutAll);
-  /* fade photos in over their blurred placeholder */
-  host.querySelectorAll('.ph img').forEach(im => { if (im.complete && im.naturalWidth) im.classList.add('in'); else im.addEventListener('load', () => im.classList.add('in'), {once: true}); });
+  const layoutAll = force => { PAGES.forEach(pg => layoutPage(pg, force)); if (EDIT && window.__decorate) window.__decorate(); };
+  layoutAll(); relayout = () => layoutAll();
+  document.fonts && document.fonts.ready.then(() => layoutAll(true));
   if (PREVIEW) return;
 
   /* ---------- ridgeline: Amsterdam (left) to Managua (right), height = altitude ---------- */
@@ -377,23 +317,24 @@ function render(trip, diary) {
 
   /* ---------- stats ---------- */
   const visited = STOPS.filter(s => D(s.from) <= TODAY);
-  if (photos.length && visited.length) {
+  if (shown.size && visited.length) {
     const hi = visited.reduce((m, s) => s.alt > m.alt ? s : m, visited[0]);
-    $('stats').innerHTML = [[nf.format(photos.length), photos.length === 1 ? 'photo' : 'photos'], [`${Math.min(dn, TRIP_DAYS)}`, `of ${TRIP_DAYS} days`], [`${visited.length}`, `of ${STOPS.length} stops`], [`${nf.format(hi.alt)} m`, `highest, ${esc(hi.peak || hi.name)}`]]
+    $('stats').innerHTML = [[nf.format(shown.size), shown.size === 1 ? 'photo' : 'photos'], [`${Math.min(dn, TRIP_DAYS)}`, `of ${TRIP_DAYS} days`], [`${visited.length}`, `of ${STOPS.length} stops`], [`${nf.format(hi.alt)} m`, `highest, ${esc(hi.peak || hi.name)}`]]
       .map(([b, t]) => `<div><b>${b}</b><span>${t}</span></div>`).join('');
   } else $('stats').hidden = true;
 
   /* ---------- lightbox ---------- */
-  const lb = $('lb'), lbImg = $('lbImg'), lbSrc = $('lbSrc'); let at = 0, lastFocus = null;
+  /* the lightbox follows the photos in the order they appear on the page */
+  const lb = $('lb'), lbImg = $('lbImg'), lbSrc = $('lbSrc'); let at = 0, lastFocus = null, ALL = [];
   function showLb(i) {
-    at = (i + ALL.length) % ALL.length; const a = ALL[at], base = 'img/' + a.p.id;
+    at = (i + ALL.length) % ALL.length; const a = LB.get(ALL[at]), base = 'img/' + a.p.id;
     lbSrc.srcset = a.p.sizes.map(w => `${base}-${w}.avif ${w}w`).join(', ');
-    lbImg.src = base + '.jpg'; lbImg.alt = a.p.caption || '';
+    lbImg.src = base + '.jpg'; lbImg.alt = a.caption || '';
     $('lbTitle').textContent = a.title;
-    $('lbMeta').textContent = [a.p.caption ? a.where : '', a.when, a.exif].filter(Boolean).join(' · ');
+    $('lbMeta').textContent = [a.caption ? a.where : '', a.when, a.exif].filter(Boolean).join(' · ');
     $('lbCount').textContent = `${at + 1} of ${ALL.length}`;
   }
-  function openLb(i) { lastFocus = document.activeElement; lb.hidden = false; document.body.style.overflow = 'hidden'; showLb(i); $('lbClose').focus(); }
+  openLb = f => { ALL = [...host.querySelectorAll('.ph[data-pid]')].map(x => x.dataset.pid).filter(id => LB.has(id)); lastFocus = document.activeElement; lb.hidden = false; document.body.style.overflow = 'hidden'; showLb(Math.max(0, ALL.indexOf(f.dataset.pid))); $('lbClose').focus(); };
   function closeLb() { lb.hidden = true; document.body.style.overflow = ''; lastFocus && lastFocus.focus(); }
   $('lbClose').onclick = closeLb;
   $('lbPrev').onclick = () => showLb(at - 1);

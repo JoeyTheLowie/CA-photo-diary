@@ -155,9 +155,15 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media (hover:none){.nav{display:none}}
 .later.empty{padding-top:96px;font-size:17px}
 [hidden]{display:none!important}
-/* live preview inside the post page: just the day being edited */
+/* blocks */
+.blk{display:flex;flex-direction:column;gap:var(--gap)}
+.mosaic{display:flex;gap:var(--gap)}
+.mosaic .col{display:flex;flex-direction:column;gap:var(--gap);min-width:0}
+.mosaic .ph{min-height:0;height:auto}
+/* live preview inside the post page: just the location being edited */
 html.preview .sky,html.preview .topbar,html.preview .intro,html.preview .sentinel,html.preview .rbar,html.preview .stats,html.preview .foot,html.preview .later{display:none!important}
 html.preview .stop:first-child{margin-top:0;padding-top:24px}
+html.preview .rows{min-height:240px}
 html.preview .ph{cursor:default}
 </style>
 </head>

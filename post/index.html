@@ -5,106 +5,49 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#121110">
-<title>Post to the diary</title>
+<title>Edit the diary</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23121110'/%3E%3Cpath d='M4 25 13 11h6l9 14Z' fill='%23E8623A'/%3E%3Ccircle cx='16' cy='7' r='2.4' fill='%23FFE2B0'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@800&family=Inter:wght@400;500;600&display=swap">
 <script src="../assets/exifr.lite.umd.js"></script>
 <style>
-:root{--basalt:#121110;--ash:#1E1C1A;--ash-2:#282623;--pumice:#EDE8E0;--grey:#9A938A;--grey-2:#6B655E;--hair:rgba(237,232,224,.12);--ember:#E8623A;--moss:#7E9466;
+:root{--basalt:#121110;--ash:#1E1C1A;--ash-2:#282623;--ash-3:#34312d;--pumice:#EDE8E0;--grey:#9A938A;--grey-2:#6B655E;--hair:rgba(237,232,224,.12);--ember:#E8623A;
   --f-title:"Archivo","Helvetica Neue",Arial,sans-serif;--f-text:"Inter",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--basalt);color:var(--pumice);font:400 16px/1.45 var(--f-text);-webkit-font-smoothing:antialiased;
-  padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(120px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
-header a{color:var(--grey);font-size:14px;text-decoration:none}
-h1{margin:8px 0 0;font:800 40px/.95 var(--f-title);text-transform:uppercase;letter-spacing:-.015em}
-h2{margin:0 0 10px;font-size:13px;font-weight:500;color:var(--grey)}
-.card{background:var(--ash);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
-label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--grey)}
-input,textarea,select{font:inherit;font-size:16px;color:var(--pumice);background:var(--ash-2);border:1px solid transparent;border-radius:10px;padding:11px 12px;width:100%;min-width:0}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--grey-2)}
-textarea{resize:vertical;min-height:96px}
-.btn{font:500 16px/1 var(--f-text);border:0;border-radius:12px;padding:15px 18px;cursor:pointer;color:var(--pumice);background:var(--ash-2);text-align:center;text-decoration:none;display:inline-flex;justify-content:center;align-items:center;gap:8px}
-.btn.primary{background:var(--ember);color:#1a0d07;font-weight:600}
-.btn:disabled{opacity:.45;cursor:default}
-.btn.small{padding:9px 12px;font-size:14px;border-radius:10px}
-.pick{border:1.5px dashed var(--grey-2);background:transparent;padding:28px 16px;width:100%;flex-direction:column;gap:4px}
-.pick span{font-size:13px;color:var(--grey)}
-.photos{display:flex;flex-direction:column;gap:10px}
-.photo{display:grid;grid-template-columns:20px 96px 1fr;gap:12px;background:var(--ash);border-radius:14px;padding:10px}
-.photo img{width:96px;height:96px;object-fit:cover;border-radius:8px;display:block;background:var(--ash-2)}
-.photo .f{display:flex;flex-direction:column;gap:8px;min-width:0}
-.photo .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.photo .when{flex:1 1 190px}
-.photo input{padding:9px 10px;font-size:15px}
-.photo .meta{font-size:12px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html,body{height:100%}
+body{margin:0;background:var(--basalt);color:var(--pumice);font:400 14px/1.45 var(--f-text);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr;grid-template-columns:316px 1fr}
+/* ---------- top bar ---------- */
+.top{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--hair);background:var(--ash);flex-wrap:wrap}
+.top .brand{font:800 17px/1 var(--f-title);text-transform:uppercase;letter-spacing:-.01em;margin-right:6px}
+.top select{font:500 14px/1 var(--f-text);color:var(--pumice);background:var(--ash-2);border:1px solid var(--hair);border-radius:9px;padding:9px 10px;max-width:340px}
+.grow{flex:1}
 .seg{display:flex;background:var(--ash-2);border-radius:9px;padding:2px;gap:2px}
-.seg button{flex:1;border:0;background:none;color:var(--grey);font:500 13px/1 var(--f-text);padding:8px 6px;border-radius:7px;cursor:pointer}
-.seg button.on{background:#3a3733;color:var(--pumice)}
-.tog{display:flex;flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--grey);white-space:nowrap}
-.tog input{width:18px;height:18px;accent-color:var(--ember)}
-.x{margin-left:auto;background:none;border:0;color:var(--grey);font-size:20px;cursor:pointer;padding:4px 8px}
-.bar{position:fixed;left:0;right:0;bottom:0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(18,17,16,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid var(--hair)}
-.bar .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
-.bar .btn{width:100%}
-.status{font-size:14px;color:var(--grey);min-height:1.2em;text-align:center}
+.seg button{border:0;background:none;color:var(--grey);font:500 13px/1 var(--f-text);padding:8px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--ash-3);color:var(--pumice)}
+.tog{display:flex;flex-direction:row;align-items:center;gap:7px;color:var(--grey);font-size:13px;cursor:pointer;user-select:none;white-space:nowrap}
+.tog input{width:16px;height:16px;accent-color:var(--ember);margin:0}
+.tog.on{color:var(--pumice)}
+.btn{font:500 14px/1 var(--f-text);border:0;border-radius:10px;padding:10px 14px;cursor:pointer;color:var(--pumice);background:var(--ash-2);display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--ash-3)}
+.btn.primary{background:var(--ember);color:#1a0d07;font-weight:600}
+.btn.primary:hover{background:#f07447}
+.btn:disabled{opacity:.45;cursor:default}
+.status{font-size:13px;color:var(--grey);max-width:340px;text-align:right}
 .status.ok{color:#B9D19A}.status.err{color:#F09A7A}
-.hint{font-size:13px;color:var(--grey);margin:0}
-.notes{display:flex;flex-direction:column;gap:14px}
-.nb{display:flex;flex-direction:column;gap:8px}
-.nb+.nb{border-top:1px solid var(--hair);padding-top:12px}
-.nbh{display:flex;align-items:center;font-size:13px;color:var(--grey)}
-#addNote{align-self:flex-start}
-.hint a{color:var(--pumice)}
-details summary{cursor:pointer;color:var(--grey);font-size:14px}
-details[open] summary{margin-bottom:12px}
-.grip{align-self:center;color:var(--grey-2);font-size:20px;cursor:grab;touch-action:none;user-select:none;text-align:center;padding:16px 0}
-.photo.lift{outline:1.5px solid var(--ember);opacity:.92}
-body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
-/* ---------- layout builder ---------- */
-.lhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.lhead label{flex-direction:row;align-items:center;gap:8px}
-.lhead label{flex:0 1 190px}
-.tray{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.tray:empty{display:none}
-.tray .t{flex:0 0 auto;height:52px;border-radius:6px;background:var(--ash-2) center/cover;position:relative}
-.tray .t.used{opacity:.35}
-.tray .t.used::after{content:"✓";position:absolute;right:3px;bottom:1px;font-size:12px;color:var(--pumice)}
-.trayinfo{font-size:13px;color:var(--grey);margin:-4px 0 0}
-.lrows{display:flex;flex-direction:column;gap:10px}
-.lrow{background:var(--ash-2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:10px}
-.lrow .top{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--grey)}
-.lrow .top b{font-weight:500;color:var(--pumice);margin-right:auto}
-.ib{background:none;border:0;color:var(--grey);font:500 15px/1 var(--f-text);width:34px;height:30px;border-radius:8px;cursor:pointer}
-.ib:hover{background:#3a3733;color:var(--pumice)}.ib:disabled{opacity:.3;cursor:default;background:none}
-.pv{display:flex;gap:4px;height:96px}
-.pv.full{height:150px}.pv.single{height:120px;justify-content:center}
-.sl{position:relative;border-radius:6px;background:#3a3733 center/cover no-repeat;border:0;padding:0;cursor:pointer;min-width:0;color:var(--grey);font:500 22px/1 var(--f-text)}
-.sl.empty{background:transparent;border:1.5px dashed var(--grey-2)}
-.sl.wait{background:#3a3733;font-size:11px;padding:4px}
-.sl:focus-visible{outline:2px solid var(--ember)}
-.pv.full .sl{flex:1}
-.tx{flex:1.1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 6px;overflow:hidden}
-.tx b{font-size:13px;line-height:1.2;color:var(--pumice);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.tx i{display:block;height:4px;border-radius:2px;background:var(--grey-2);opacity:.6}
-.tx i:nth-child(3){width:85%}.tx i:nth-child(4){width:60%}
-.pv.quote,.pv.text{height:auto;min-height:56px}
-.pv.quote .tx{align-items:center;text-align:center}
-.pv.quote .tx b{font-size:16px}
-.pv.text .tx{flex-direction:row;align-items:flex-start;gap:12px;padding:6px}
-.pv.text .tx b{flex:5 1 0}.pv.text .tx span{flex:7 1 0;display:flex;flex-direction:column;gap:5px;padding-top:4px}
-.lrow .acts{display:flex;gap:6px;flex-wrap:wrap}
-.lrow .acts:empty{display:none}
-.lrow input,.lrow textarea{background:var(--ash);padding:9px 10px;font-size:15px}
-.lrow textarea{min-height:72px}
-.palette{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.pal{background:var(--ash-2);border:1px solid transparent;border-radius:10px;padding:8px 6px 9px;color:var(--pumice);font:500 12px/1.2 var(--f-text);display:flex;flex-direction:column;gap:7px;align-items:stretch;cursor:pointer;text-align:center}
-.pal:hover{border-color:var(--grey-2)}
-.ico{display:flex;gap:3px;height:34px}
-.ico s{flex:1;background:#5a554f;border-radius:3px}
+a.site{color:var(--grey);text-decoration:none;font-size:13px}
+/* ---------- side panel ---------- */
+.side{overflow:auto;border-right:1px solid var(--hair);padding:16px;display:flex;flex-direction:column;gap:22px}
+.side h2{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--grey);display:flex;justify-content:space-between;align-items:baseline}
+.side h2 span{font-weight:500;letter-spacing:0;text-transform:none}
+.hint{font-size:12.5px;color:var(--grey);margin:8px 0 0;line-height:1.45}
+.palette{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pal{background:var(--ash-2);border:1px solid transparent;border-radius:10px;padding:8px 6px 8px;color:var(--pumice);font:500 11.5px/1.2 var(--f-text);display:flex;flex-direction:column;gap:6px;align-items:stretch;cursor:grab;text-align:center;user-select:none}
+.pal:hover{border-color:var(--grey-2);background:var(--ash-3)}
+.ico{display:flex;gap:3px;height:30px}
+.ico s{flex:1;background:#5a554f;border-radius:3px;text-decoration:none}
 .ico s.t{background:none;display:flex;flex-direction:column;justify-content:center;gap:3px}
 .ico s.t::before,.ico s.t::after{content:"";height:3px;border-radius:2px;background:#8d867d}
 .ico s.t::after{width:70%}
@@ -112,362 +55,128 @@ body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
 .ico s.q::before{content:"";width:70%;height:6px;border-radius:3px;background:#cfc8bd}
 .ico s.h{background:none;display:flex;align-items:center}
 .ico s.h::before{content:"";width:85%;height:6px;border-radius:3px;background:#cfc8bd}
-.ico.sm s:not(.t){flex:0 0 46%;margin:0 auto}
-.sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
-.sheet-in{background:var(--ash);width:100%;max-width:640px;max-height:80vh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
-.sheet-h{display:flex;align-items:center}
-.sheet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
-.sheet-grid button{aspect-ratio:1;border:0;border-radius:8px;background:var(--ash-2) center/cover;cursor:pointer;position:relative;padding:0}
-.sheet-grid button.used{opacity:.45}
-.sheet-grid button.used::after{content:"placed";position:absolute;left:4px;bottom:4px;font:500 11px/1 var(--f-text);color:var(--pumice);background:rgba(0,0,0,.6);padding:3px 5px;border-radius:4px}
-.sheet-grid button.cur{outline:2px solid var(--ember)}
-.sheet-grid button[data-tag]::after{content:attr(data-tag);position:absolute;left:4px;bottom:4px;font:500 11px/1 var(--f-text);color:var(--pumice);background:rgba(0,0,0,.6);padding:3px 5px;border-radius:4px}
-.tray .t.oth{outline:1px dashed var(--grey-2);outline-offset:-1px}
-.sheet-act{display:flex;gap:8px;flex-wrap:wrap}
-/* ---------- live preview ---------- */
-.pvcard .seg{flex:0 0 auto;min-width:170px}
-.pvbox{position:relative;overflow:hidden;border-radius:10px;background:var(--basalt);border:1px solid var(--hair)}
-.pvbox iframe{position:absolute;top:0;left:0;border:0;transform-origin:0 0;background:var(--basalt)}
-.pvempty{position:absolute;inset:0;margin:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:14px;color:var(--grey);pointer-events:none}
-@media (min-width:1100px){
-  .wrap{max-width:600px;margin:0 0 0 max(16px,calc(50vw - 640px))}
-  .bar .in{max-width:600px;margin:0 0 0 max(0px,calc(50vw - 656px))}
-  #previewCard{position:fixed;z-index:4;top:calc(16px + env(safe-area-inset-top,0px));bottom:16px;left:calc(max(16px,50vw - 640px) + 624px);right:max(16px,calc(50vw - 640px))}
-  #previewCard .pvbox{height:auto;flex:1}
+.ico.sm s{flex:0 0 46%;margin:0 auto}
+.ico i{flex:1;display:flex;flex-direction:column;gap:3px}
+.ico i s{flex:1}
+.pick{width:100%;border:1.5px dashed var(--grey-2);background:transparent;padding:14px;flex-direction:column;gap:4px}
+.pick span{font-size:12px;color:var(--grey);font-weight:400}
+body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.tray .t{position:relative;aspect-ratio:1;border-radius:8px;background:var(--ash-2) center/cover no-repeat;cursor:grab;border:0;padding:0}
+.tray .t:hover{outline:2px solid var(--grey-2)}
+.tray .t.new::before{content:"new";position:absolute;left:4px;top:4px;font:600 10px/1 var(--f-text);background:var(--ember);color:#1a0d07;padding:3px 5px;border-radius:4px}
+.tray .t.wait{opacity:.5;cursor:default}
+.tray .t .x{position:absolute;right:3px;top:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font:500 13px/1 var(--f-text);cursor:pointer;display:none}
+.tray .t:hover .x{display:block}
+.tray .t .x.sure{display:block;width:auto;border-radius:6px;padding:0 6px;background:#a8361c;font-size:11px}
+.tray:empty::after{content:"No photos waiting. Import some, or every photo is placed.";grid-column:1/-1;color:var(--grey);font-size:12.5px}
+.selp{background:var(--ash-2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.selp img{width:100%;max-height:160px;object-fit:contain;border-radius:6px;background:var(--basalt)}
+input,textarea{font:inherit;font-size:14px;color:var(--pumice);background:var(--ash-2);border:1px solid var(--hair);border-radius:9px;padding:9px 10px;width:100%}
+input:focus,textarea:focus{outline:none;border-color:var(--grey-2)}
+.selp input{background:var(--ash)}
+label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--grey)}
+details{background:var(--ash);border-radius:12px;padding:10px 12px}
+details summary{cursor:pointer;color:var(--grey);font-size:13px}
+details[open]{display:flex;flex-direction:column;gap:10px}
+details[open] summary{margin-bottom:2px}
+/* ---------- stage: the real site, at phone or laptop size ---------- */
+.stage{position:relative;overflow:hidden;background:#0b0a0a}
+.frame{position:absolute;top:16px;left:0;transform-origin:0 0;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px var(--hair),0 20px 60px rgba(0,0,0,.5);background:var(--basalt)}
+.frame iframe{display:block;border:0;width:100%;height:100%}
+.stage .label{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:var(--grey-2);pointer-events:none}
+.setup{background:var(--ash);border:1px solid var(--ember);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{height:auto;grid-template-columns:1fr;grid-template-rows:auto auto 80vh}
+  .side{border-right:0;border-bottom:1px solid var(--hair)}
 }
-.barrow{display:flex;gap:8px}.barrow #post{flex:1}
-@media (min-width:1100px){#toPv{display:none}}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header><span style="font-weight:600">Post to the diary</span><a href="../">Open the site ↗</a></header>
-  <h1>New photos</h1>
+<div class="app">
+  <header class="top">
+    <span class="brand">Editor</span>
+    <select id="stop" aria-label="Location"></select>
+    <div class="seg" id="view" role="radiogroup" aria-label="Preview size"><button type="button" data-v="desktop">Desktop</button><button type="button" data-v="phone">Phone</button></div>
+    <label class="tog" id="devWrap" title="Give wide screens their own order of blocks"><input type="checkbox" id="deviate"> Deviate on desktop</label>
+    <span class="grow"></span>
+    <span class="status" id="status"></span>
+    <a class="site" href="../" target="_blank" rel="noopener">Open site ↗</a>
+    <button class="btn primary" id="post" type="button" disabled>Post</button>
+  </header>
 
-  <section class="card" id="setup" hidden>
-    <h2 style="margin:0">One-time setup</h2>
-    <p class="hint">Paste your GitHub token. It stays on this phone only. The guide in the README says how to make one.</p>
-    <label>GitHub token<input id="token" type="password" autocomplete="off" placeholder="github_pat_…"></label>
-    <button class="btn primary" id="saveToken" type="button">Save</button>
-  </section>
+  <aside class="side">
+    <section class="setup" id="setup" hidden>
+      <b>One-time setup</b>
+      <p class="hint" style="margin:0">Paste your GitHub token. It stays in this browser only. The README says how to make one.</p>
+      <input id="token" type="password" autocomplete="off" placeholder="github_pat_…">
+      <button class="btn primary" id="saveToken" type="button">Save</button>
+    </section>
 
-  <section>
-    <input id="files" type="file" accept="image/*" multiple hidden>
-    <button class="btn pick" id="pickBtn" type="button">Choose photos<span>Or drag them onto this page. Drag ⠿ to change the order. Dates and camera settings are read from the photos. Location data is removed.</span></button>
-  </section>
+    <section>
+      <h2>Add a block</h2>
+      <div class="palette" id="palette"></div>
+      <p class="hint">Click to add at the end, or drag into the preview. It snaps in between the other blocks.</p>
+    </section>
 
-  <section class="photos" id="photos" aria-live="polite"></section>
+    <section class="selp" id="selPanel" hidden>
+      <h2 style="margin:0">Selected photo</h2>
+      <img id="selImg" alt="">
+      <label>Caption (shown in the photo viewer)<input id="selCap" type="text" placeholder="Optional"></label>
+      <button class="btn" id="selOut" type="button">Back to the tray</button>
+    </section>
 
-  <section class="card" id="layoutCard">
-    <div class="lhead"><h2 style="margin:0">Layout</h2><label>Day<input id="noteDate" type="date"></label></div>
-    <p class="hint">Build the day row by row, top to bottom. Tap a photo spot to choose the photo. Photos you don't place follow your rows, arranged automatically. Leave it empty and the site arranges the whole day.</p>
-    <div class="tray" id="tray"></div>
-    <p class="trayinfo" id="trayInfo"></p>
-    <div class="lrows" id="rows"></div>
-    <div class="palette" id="palette" hidden></div>
-    <button class="btn small" id="addRow" type="button" style="align-self:flex-start">+ Add row</button>
-    <p class="hint" id="noteHint"></p>
-  </section>
+    <section>
+      <h2>Photos <span id="trayCount"></span></h2>
+      <input id="files" type="file" accept="image/*" multiple hidden>
+      <button class="btn pick" id="pickBtn" type="button">Import photos<span>or drop them here</span></button>
+      <div class="tray" id="tray"></div>
+      <p class="hint" id="trayHint">Drag a photo onto a spot. Or click a spot in the preview, then click photos here to fill it. Photos you don't place stay off the site.</p>
+    </section>
 
-  <section class="card pvcard" id="previewCard">
-    <div class="lhead"><h2 style="margin:0">Preview</h2><div class="seg" id="pvMode" role="radiogroup" aria-label="Preview size"><button type="button" data-m="phone" class="on">Phone</button><button type="button" data-m="desktop">Desktop</button></div></div>
-    <div class="pvbox" id="pvBox"><iframe id="pvFrame" title="Preview of the day" src="../?preview" tabindex="-1"></iframe><p class="pvempty" id="pvEmpty">Add photos or rows and the day appears here, exactly as on the site.</p></div>
-  </section>
+    <details id="textsCard">
+      <summary>Site texts</summary>
+      <label>Site name (top left)<input id="tTitle" type="text"></label>
+      <label>Headline<input id="tHeadline" type="text"></label>
+      <label>Intro<textarea id="tIntro" rows="3"></textarea></label>
+      <label>Footer<input id="tFooter" type="text"></label>
+      <button class="btn" id="saveTexts" type="button" style="align-self:flex-start">Save texts</button>
+      <p class="hint" id="textsHint"></p>
+    </details>
 
-  <details class="card" id="textsCard">
-    <summary>Site texts</summary>
-    <label>Site name (top left)<input id="tTitle" type="text"></label>
-    <label>Headline<input id="tHeadline" type="text"></label>
-    <label>Intro<textarea id="tIntro"></textarea></label>
-    <label>Footer<input id="tFooter" type="text"></label>
-    <button class="btn small" id="saveTexts" type="button" style="align-self:flex-start">Save texts</button>
-    <p class="hint" id="textsHint"></p>
-  </details>
+    <details>
+      <summary>Settings</summary>
+      <label>Repository<input id="repo" type="text" placeholder="owner/name"></label>
+      <div style="display:flex;gap:8px"><button class="btn" id="saveRepo" type="button">Save</button><button class="btn" id="forget" type="button">Forget token</button></div>
+      <p class="hint">Posting saves to GitHub; a GitHub Action builds the site, usually within two minutes. <a id="actionsLink" href="#" target="_blank" rel="noopener" style="color:var(--pumice)">See progress</a></p>
+    </details>
+  </aside>
 
-  <details class="card">
-    <summary>Settings</summary>
-    <label>Repository<input id="repo" type="text" placeholder="owner/name"></label>
-    <div class="row" style="display:flex;gap:8px">
-      <button class="btn small" id="saveRepo" type="button">Save repository</button>
-      <button class="btn small" id="forget" type="button">Forget token</button>
-    </div>
-    <p class="hint">Uploads go to the <code>inbox</code> folder. A GitHub Action turns them into the website, usually within two minutes. <a id="actionsLink" href="#" target="_blank" rel="noopener">See progress</a></p>
-  </details>
+  <main class="stage" id="stage">
+    <div class="frame" id="frame"><iframe id="pv" title="Live preview, editable" src="../?preview&amp;edit"></iframe></div>
+    <div class="label" id="stageLabel"></div>
+  </main>
 </div>
-
-<div class="sheet" id="sheet" hidden><div class="sheet-in" role="dialog" aria-label="Choose a photo">
-  <div class="sheet-h"><b>Choose a photo</b><button class="x" id="sheetClose" type="button" aria-label="Close">×</button></div>
-  <div class="sheet-grid" id="sheetGrid"></div>
-  <div class="sheet-act" id="sheetAct"></div>
-</div></div>
-
-<div class="bar"><div class="in">
-  <div class="status" id="status"></div>
-  <div class="barrow"><button class="btn" id="toPv" type="button">Preview</button><button class="btn primary" id="post" type="button" disabled>Post</button></div>
-</div></div>
 
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 const store={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch{}}};
-const defaultRepo=(()=>{const h=location.hostname;if(h.endsWith('.github.io')){const seg=location.pathname.split('/').filter(Boolean)[0];return `${h.split('.')[0]}/${seg}`}return 'JoeyTheLowie/CA-photo-diary'})();
-let repo=store.get('diary.repo')||defaultRepo, token=store.get('diary.token');
+let repo=store.get('diary.repo')||'JoeyTheLowie/CA-photo-diary', token=store.get('diary.token');
 const MAX=2048;
-const items=[];
-let noteTouched=false;
-
 function setStatus(t,cls=''){const s=$('status');s.textContent=t;s.className='status '+cls}
-function refresh(){
-  $('setup').hidden=!!token;$('repo').value=repo;$('actionsLink').href=`https://github.com/${repo}/actions`;
-  const hasLayout=typeof layoutJSON==='function'&&loadedDay===day()&&layoutJSON()!==loadedJSON;
-  $('post').disabled=!token||(!items.length&&!hasLayout);
-  schedulePreview();
-  $('post').textContent=items.length?`Post ${items.length} photo${items.length>1?'s':''}${hasLayout?' and layout':''}`:hasLayout?'Post layout':'Post';
-}
-$('saveToken').onclick=()=>{const v=$('token').value.trim();if(!v)return;token=v;store.set('diary.token',v);$('token').value='';refresh();loadNote()};
-$('saveRepo').onclick=()=>{const v=$('repo').value.trim().replace(/^https:\/\/github.com\//,'').replace(/\/$/,'');if(/^[\w.-]+\/[\w.-]+$/.test(v)){repo=v;store.set('diary.repo',v);setStatus('Repository saved.','ok')}else setStatus('Use the form owner/name.','err');refresh()};
-$('forget').onclick=()=>{token=null;store.set('diary.token',null);refresh()};
 
 /* ---------- GitHub ---------- */
 async function gh(path,opt={}){
-  const r=await fetch(`https://api.github.com/repos/${repo}${path}`,{...opt,headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opt.body?{'Content-Type':'application/json'}:{})}});
+  const r=await fetch(`https://api.github.com/repos/${repo}${path}`,{...opt,cache:'no-store',headers:{Authorization:`Bearer ${token}`,Accept:opt.raw?'application/vnd.github.raw+json':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opt.body?{'Content-Type':'application/json'}:{})}});
   if(!r.ok){const e=new Error(`${r.status} ${(await r.json().catch(()=>({}))).message||r.statusText}`);e.status=r.status;throw e}
   return r.status===204?null:r.json();
 }
 const b64=buf=>{let s='';const u=new Uint8Array(buf);for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
-const utf8b64=t=>b64(new TextEncoder().encode(t));
 const fromb64=t=>new TextDecoder().decode(Uint8Array.from(atob(t.replace(/\n/g,'')),c=>c.charCodeAt(0)));
-
-/* ---------- photos ---------- */
-const pad=n=>String(n).padStart(2,'0');
-const localISO=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-const fmtShutter=t=>t>=1?`${+t.toFixed(1)} s`:`1/${Math.round(1/t)} s`;
-async function readExif(file){
-  try{const x=await exifr.parse(file,{reviveValues:false,gps:false,xmp:false,icc:false,iptc:false});if(!x)return{};
-    const raw=x.DateTimeOriginal||x.CreateDate;let taken=null;const m=typeof raw==='string'&&raw.match(/^(\d{4}):(\d\d):(\d\d)[ T](\d\d):(\d\d)/);if(m)taken=`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}`;
-    const exif=[x.FocalLength&&`${Math.round(x.FocalLength)} mm`,x.FNumber&&`f/${+(+x.FNumber).toFixed(1)}`,x.ExposureTime&&fmtShutter(+x.ExposureTime),x.ISO&&`ISO ${x.ISO}`].filter(Boolean).join(' · ');
-    return{taken,exif}}catch{return{}}
-}
-function loadImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>res({im,u});im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('This photo could not be opened.'))};im.src=u})}
-async function shrink(im){
-  const w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,MAX/Math.max(w,h));
-  const c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);
-  const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(im,0,0,c.width,c.height);
-  return new Promise(r=>c.toBlob(r,'image/jpeg',.9));   /* re-encoding drops all metadata, GPS included */
-}
-$('pickBtn').onclick=()=>$('files').click();
-$('files').onchange=e=>{const f=[...e.target.files];e.target.value='';addFiles(f)};
-async function addFiles(files){
-  files=files.filter(f=>/^image\//.test(f.type)||/\.(jpe?g|png|heic|webp|tiff?)$/i.test(f.name));
-  for(const file of files){
-    const it={file,caption:'',size:'normal'};items.push(it);
-    const el=document.createElement('div');el.className='photo';it.el=el;
-    el.innerHTML=`<div class="grip" aria-label="Drag to reorder" title="Drag to reorder">⠿</div><img alt=""><div class="f"><input class="cap" type="text" placeholder="Caption (optional)"><div class="row"><input class="when" type="datetime-local" aria-label="Taken at"></div><div class="row"><span class="meta">Reading…</span><button class="x" type="button" aria-label="Remove">×</button></div></div>`;
-    $('photos').appendChild(el);
-    el.querySelector('.cap').oninput=ev=>it.caption=ev.target.value;
-    el.querySelector('.when').onchange=ev=>{it.taken=ev.target.value;syncNoteDate();drawLayout()};
-    el.querySelector('.x').onclick=()=>{items.splice(items.indexOf(it),1);el.remove();drawLayout();refresh()};
-    grip(el.querySelector('.grip'),el);
-    refresh();
-    try{
-      const [x,{im,u}]=await Promise.all([readExif(file),loadImg(file)]);
-      el.querySelector('img').src=u;it.exif=x.exif||'';
-      it.taken=x.taken||localISO(new Date(file.lastModified||Date.now()));
-      el.querySelector('.when').value=it.taken;
-      it.blobP=shrink(im);it.ar=im.naturalWidth/im.naturalHeight;it.w=im.naturalWidth;it.h=im.naturalHeight;
-      it.thumb=URL.createObjectURL(await it.blobP);   /* the 2048 px copy: light enough for the previews */
-      /* the site knows a photo by the first 8 hex digits of the SHA-1 of the uploaded file, so the layout can point at it before it is processed */
-      const buf=await (await it.blobP).arrayBuffer();
-      it.hash=[...new Uint8Array(await crypto.subtle.digest('SHA-1',buf))].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,8);
-      el.querySelector('.meta').textContent=[x.taken?'':'No date in photo, check it',it.exif].filter(Boolean).join(' · ')||'Ready';
-      syncNoteDate();drawLayout();
-    }catch(err){el.querySelector('.meta').textContent=err.message;it.bad=true}
-  }
-}
-/* drop photos anywhere on the page (desktop) */
-let dragDepth=0;
-addEventListener('dragenter',e=>{if([...e.dataTransfer.types].includes('Files')){e.preventDefault();dragDepth++;document.body.classList.add('dropping')}});
-addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('Files'))e.preventDefault()});
-addEventListener('dragleave',()=>{if(--dragDepth<=0){dragDepth=0;document.body.classList.remove('dropping')}});
-addEventListener('drop',e=>{e.preventDefault();dragDepth=0;document.body.classList.remove('dropping');if(e.dataTransfer.files.length)addFiles([...e.dataTransfer.files])});
-/* reorder by dragging the handle (mouse and touch); the order is kept on the site */
-function grip(h,el){
-  const list=$('photos');
-  const moveTo=y=>{const sib=[...list.children].filter(x=>x!==el);
-    const after=sib.find(x=>{const r=x.getBoundingClientRect();return y<r.top+r.height/2});
-    if(after!==el.nextElementSibling)list.insertBefore(el,after||null)};
-  const done=()=>{el.classList.remove('lift');const order=[...list.children];items.sort((a,b)=>order.indexOf(a.el)-order.indexOf(b.el));drawLayout()};
-  /* mouse */
-  h.addEventListener('mousedown',e=>{e.preventDefault();el.classList.add('lift');
-    const mv=ev=>moveTo(ev.clientY),up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);done()};
-    addEventListener('mousemove',mv);addEventListener('mouseup',up)});
-  /* touch */
-  h.addEventListener('touchstart',e=>{e.preventDefault();el.classList.add('lift');
-    const mv=ev=>{ev.preventDefault();moveTo(ev.touches[0].clientY)},up=()=>{removeEventListener('touchmove',mv);removeEventListener('touchend',up);removeEventListener('touchcancel',up);done()};
-    addEventListener('touchmove',mv,{passive:false});addEventListener('touchend',up);addEventListener('touchcancel',up)},{passive:false});
-}
-
-/* ---------- layout builder: a day is a list of rows, saved as layouts/<day>.json ---------- */
-/* Row types. p = photo spots (min..max), text = has a heading and text, quote = a single bold line. */
-const TYPES={
-  full:{name:'Full width',min:1,max:1},
-  single:{name:'Single photo',min:1,max:1},
-  row:{name:'Side by side',min:2,max:4},
-  'photo-text':{name:'Photos and text',min:1,max:3,text:true},
-  quote:{name:'Quote',min:0,max:0,quote:true},
-  text:{name:'Text',min:0,max:0,text:true}
-};
-/* The palette: what Joe taps to add a row. Icons are drawn with small boxes: s = photo, s.t = text lines, s.q = quote, s.h = heading. */
-const PALETTE=[
-  {label:'Full width',row:{t:'full',p:[null]},ico:'<s></s>'},
-  {label:'Single photo',row:{t:'single',p:[null]},ico:'<s></s>',sm:1},
-  {label:'2 side by side',row:{t:'row',p:[null,null]},ico:'<s></s><s></s>'},
-  {label:'3 side by side',row:{t:'row',p:[null,null,null]},ico:'<s></s><s></s><s></s>'},
-  {label:'Photo + text',row:{t:'photo-text',p:[null],side:'right',h:'',b:''},ico:'<s style="flex:1.4"></s><s class="t"></s>'},
-  {label:'Text + photo',row:{t:'photo-text',p:[null],side:'left',h:'',b:''},ico:'<s class="t"></s><s style="flex:1.4"></s>'},
-  {label:'Quote',row:{t:'quote',h:''},ico:'<s class="q"></s>'},
-  {label:'Text',row:{t:'text',h:'',b:''},ico:'<s class="h"></s><s class="t"></s>'}
-];
-let rows=[],palOpen=false,diaryP=null,loadedDay=null,loadedJSON='[]',hadLayout=false,hadNotes=false,dayToken=0;
-const day=()=>$('noteDate').value;
-function getDiary(force){if(force||!diaryP)diaryP=fetch(`https://api.github.com/repos/${repo}/contents/data/diary.json`,{headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github.raw+json'},cache:'no-store'}).then(r=>r.ok?r.json():{photos:[]}).catch(()=>({photos:[]}));return diaryP}
-let siteDay=[];   /* photos already on the site for this day */
-/* every photo that can be placed on this day: the ones already on the site, then the new ones in upload order */
-function pool(){
-  const d=day(),out=[],seen=new Set();
-  for(const p of siteDay){seen.add(p.hash);out.push({key:p.hash,bg:`url(../img/${p.id}-${p.sizes[0]}.avif), url(${p.lqip})`,ar:p.w/p.h})}
-  /* every new photo can be placed; one taken on another day moves to this day when it is placed */
-  const mine=items.filter(it=>it.hash&&!it.bad&&!seen.has(it.hash));
-  for(const it of [...mine.filter(it=>(it.taken||'').slice(0,10)===d),...mine.filter(it=>(it.taken||'').slice(0,10)!==d)])
-    if(!seen.has(it.hash)){seen.add(it.hash);const od=(it.taken||'').slice(0,10)!==d;out.push({key:it.hash,bg:`url(${it.thumb})`,ar:it.ar,isNew:true,it,other:od?new Date(it.taken.slice(0,10)+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):''})}
-  return out;
-}
-function claim(key){const x=pool().find(v=>v.key===key);if(x&&x.other){x.it.taken=day()+(x.it.taken||'T12:00').slice(10);x.it.el.querySelector('.when').value=x.it.taken}}
-const placedKeys=()=>new Set(rows.flatMap(r=>(r.p||[]).filter(Boolean)));
-const clean=()=>rows.map(r=>{const T=TYPES[r.t],o={t:r.t};if(T.max)o.p=r.p.filter(Boolean);if(r.t==='photo-text')o.side=r.side;if(T.text||T.quote)o.h=(r.h||'').trim();if(T.text)o.b=(r.b||'').trim();return o})
-  .filter(o=>(o.p&&o.p.length)||o.h||o.b);
-const layoutJSON=()=>JSON.stringify(clean());
-function addRowOf(tpl){
-  const r=JSON.parse(JSON.stringify(tpl));
-  if(r.p){const used=placedKeys(),free=pool().filter(x=>!used.has(x.key));r.p=r.p.map(()=>{const f=free.shift();if(f)claim(f.key);return f?f.key:null})}   /* fill with the next unplaced photos */
-  rows.push(r);palOpen=false;drawLayout();refresh();
-}
-$('palette').innerHTML=PALETTE.map((x,i)=>`<button class="pal" type="button" data-i="${i}"><span class="ico${x.sm?' sm':''}">${x.ico}</span>${x.label}</button>`).join('');
-$('palette').onclick=e=>{const b=e.target.closest('.pal');if(b)addRowOf(PALETTE[+b.dataset.i].row)};
-$('addRow').onclick=()=>{palOpen=!palOpen||!rows.length;drawLayout()};
-function drawLayout(){
-  const P=pool(),byKey=new Map(P.map(x=>[x.key,x])),used=placedKeys();
-  $('tray').innerHTML=P.map(x=>`<span class="t${used.has(x.key)?' used':''}${x.other?' oth':''}" style="aspect-ratio:${x.ar.toFixed(3)};background-image:${x.bg}"></span>`).join('');
-  const left=P.filter(x=>!used.has(x.key)).length,other=P.filter(x=>x.other).length;
-  $('trayInfo').textContent=(P.length?`${P.length} photo${P.length>1?'s':''}, ${left?`${left} not placed yet`:'all placed'}.`:'No photos yet. Add photos above, or pick another day.')+(other?` ${other} ${other>1?'were':'was'} taken on another day: place ${other>1?'them':'it'} here and ${other>1?'they move':'it moves'} to this day, or leave ${other>1?'them':'it'} and ${other>1?'they':'it'} appear${other>1?'':'s'} on ${other>1?'their':'its'} own day.`:'');
-  $('palette').hidden=!(palOpen||!rows.length);
-  $('addRow').textContent=rows.length?'+ Add row':'+ Add first row';
-  const host=$('rows');host.textContent='';
-  rows.forEach((r,i)=>{
-    const T=TYPES[r.t],el=document.createElement('div');el.className='lrow';
-    el.innerHTML=`<div class="top"><b>${T.name}</b><button class="ib" data-a="up" aria-label="Move up"${i?'':' disabled'}>↑</button><button class="ib" data-a="down" aria-label="Move down"${i<rows.length-1?'':' disabled'}>↓</button><button class="ib" data-a="del" aria-label="Remove row">×</button></div><div class="pv ${r.t}"></div><div class="acts"></div>`;
-    const pv=el.querySelector('.pv'),acts=el.querySelector('.acts');
-    const textBox=()=>{const tx=document.createElement('div');tx.className='tx';
-      if(r.t==='text')tx.innerHTML=`<b></b><span><i></i><i></i><i></i></span>`;else tx.innerHTML=`<b></b>${T.quote?'':'<i></i><i></i><i></i>'}`;
-      tx.querySelector('b').textContent=r.h||(T.quote?'Your quote':'Heading');if(!r.h)tx.querySelector('b').style.opacity=.45;return tx};
-    (r.p||[]).forEach((k,j)=>{
-      const x=k&&byKey.get(k),b=document.createElement('button');b.type='button';b.className='sl'+(k?x?'':' wait':' empty');
-      if(x){b.style.backgroundImage=x.bg;b.style.flex=r.t==='full'?'1':`${x.ar.toFixed(3)} 1 0`;if(r.t==='single')b.style.aspectRatio=x.ar.toFixed(3)}
-      else{b.style.flex=r.t==='single'?'0 0 40%':'1 1 0';b.textContent=k?'Still processing':'+'}
-      b.setAttribute('aria-label',k?'Change photo':'Choose photo');
-      b.onclick=()=>openSheet(r,j);pv.appendChild(b);
-    });
-    if(r.t==='photo-text'){const tx=textBox();if(r.side==='left')pv.prepend(tx);else pv.appendChild(tx)}
-    if(T.quote||r.t==='text')pv.appendChild(textBox());
-    if(T.max>T.min&&r.p.length<T.max)acts.insertAdjacentHTML('beforeend',`<button class="btn small" data-a="more" type="button">+ Photo spot</button>`);
-    if(r.t==='photo-text')acts.insertAdjacentHTML('beforeend',`<button class="btn small" data-a="flip" type="button">Text ${r.side==='left'?'right':'left'}</button>`);
-    if(T.text||T.quote){
-      const h=document.createElement('input');h.type='text';h.placeholder=T.quote?'Quote (short, shown big and bold)':'Heading (optional, shown bold)';h.value=r.h||'';
-      h.oninput=()=>{r.h=h.value;const b=pv.querySelector('.tx b');b.textContent=r.h||(T.quote?'Your quote':'Heading');b.style.opacity=r.h?1:.45;refresh()};el.appendChild(h);
-      if(T.text){const ta=document.createElement('textarea');ta.placeholder='Text (optional). Leave an empty line between paragraphs.';ta.value=r.b||'';ta.oninput=()=>{r.b=ta.value;refresh()};el.appendChild(ta)}
-    }
-    el.querySelector('.top').onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
-      if(a==='up'&&i){[rows[i-1],rows[i]]=[rows[i],rows[i-1]]}
-      if(a==='down'&&i<rows.length-1){[rows[i+1],rows[i]]=[rows[i],rows[i+1]]}
-      if(a==='del')rows.splice(i,1);
-      drawLayout();refresh()};
-    acts.onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
-      if(a==='more'){const used=placedKeys(),f=pool().find(x=>!used.has(x.key));if(f)claim(f.key);r.p.push(f?f.key:null)}
-      if(a==='flip')r.side=r.side==='left'?'right':'left';
-      drawLayout();refresh()};
-    host.appendChild(el);
-  });
-}
-/* choosing a photo for a spot; a photo that is placed elsewhere moves here */
-function openSheet(r,j){
-  const P=pool(),used=placedKeys(),T=TYPES[r.t];
-  $('sheetGrid').innerHTML=P.length?P.map(x=>`<button type="button" data-k="${x.key}" class="${r.p[j]===x.key?'cur':used.has(x.key)?'used':''}"${x.other&&!used.has(x.key)?` data-tag="${x.other}"`:''} style="background-image:${x.bg}" aria-label="Photo"></button>`).join(''):'<p class="hint">No photos on this day yet.</p>';
-  $('sheetAct').innerHTML=(r.p[j]?'<button class="btn small" type="button" data-a="clear">Empty this spot</button>':'')+(r.p.length>T.min?'<button class="btn small" type="button" data-a="drop">Remove this spot</button>':'');
-  $('sheet').hidden=false;
-  $('sheetGrid').onclick=e=>{const b=e.target.closest('button[data-k]');if(!b)return;const k=b.dataset.k;
-    rows.forEach(o=>{if(o.p)o.p=o.p.map(v=>v===k?null:v)});claim(k);r.p[j]=k;closeSheet()};
-  $('sheetAct').onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(a==='clear')r.p[j]=null;if(a==='drop')r.p.splice(j,1);if(a)closeSheet()};
-}
-function closeSheet(){$('sheet').hidden=true;drawLayout();refresh()}
-$('sheetClose').onclick=()=>{$('sheet').hidden=true};
-$('sheet').onclick=e=>{if(e.target===$('sheet'))$('sheet').hidden=true};
-addEventListener('keydown',e=>{if(e.key==='Escape')$('sheet').hidden=true});
-
-/* notes written before the builder existed (notes/<day>.md) open as text rows */
-function parseNotes(txt){return txt.trim().split(/\n\s*-{3,}\s*\n/).map(bl=>{
-  const lines=bl.trim().split('\n');let h='',cap='';
-  if(/^#\s+/.test(lines[0]))h=lines.shift().replace(/^#\s+/,'').trim();
-  if(lines.length>1&&/^\s*(—|--|–)\s/.test(lines.at(-1)))cap=lines.pop().replace(/^\s*(—|--|–)\s*/,'').trim();
-  const pars=lines.join('\n').trim().split(/\n\s*\n/).filter(Boolean);if(cap)pars.push(cap);const b=pars.join('\n\n');
-  return b?{t:'text',h,b}:{t:'quote',h}}).filter(r=>r.h||r.b)}
-function syncNoteDate(){if(noteTouched)return;const d=items.map(i=>i.taken).filter(Boolean).sort().pop();if(d&&day()!==d.slice(0,10)){$('noteDate').value=d.slice(0,10);loadNote()}}
-$('noteDate').value=localISO(new Date()).slice(0,10);
-$('noteDate').onchange=()=>{noteTouched=true;loadNote()};
-async function loadNote(){
-  const d=day(),my=++dayToken;loadedDay=null;rows=[];palOpen=false;hadLayout=hadNotes=false;siteDay=[];$('noteHint').textContent='';drawLayout();refresh();if(!token||!d)return;
-  try{
-    const [diary,lay,notes]=await Promise.all([getDiary(),gh(`/contents/layouts/${d}.json`).catch(e=>{if(e.status===404)return null;throw e}),gh(`/contents/notes/${d}.md`).catch(e=>{if(e.status===404)return null;throw e})]);
-    if(my!==dayToken)return;
-    siteDay=(diary.photos||[]).filter(p=>p.date===d).sort((a,b)=>(a.batch&&a.batch===b.batch?a.seq-b.seq:0)||(a.time||'').localeCompare(b.time||''));
-    hadLayout=!!lay;hadNotes=!!notes;
-    if(lay){rows=(JSON.parse(fromb64(lay.content)).rows||[]).filter(r=>TYPES[r.t]).map(r=>({...r,p:TYPES[r.t].max?(r.p||[]).slice():undefined,side:r.side||'right'}))}
-    else if(notes)rows=parseNotes(fromb64(notes.content));
-    loadedDay=d;loadedJSON=layoutJSON();
-    $('noteHint').textContent=lay?'This day already has a layout; it is loaded above. Your changes replace it.':notes?'This day already has notes; they are loaded above as text rows. Move them where you want them.':'';
-    drawLayout();refresh();
-  }catch(e){if(my===dayToken)$('noteHint').textContent='Could not load this day: '+e.message}
-}
-
-/* ---------- live preview: the real site in an iframe, showing only this day ---------- */
-let trip=null,pvReady=false,pvT=0,pvMode=store.get('diary.pvMode')||'phone';
-fetch('../data/trip.json',{cache:'no-cache'}).then(r=>r.json()).then(t=>{trip=t;schedulePreview()}).catch(()=>{});
-function stopFor(date){const S=trip.stops;const hit=S.find(s=>s.from<=date&&date<s.to);if(hit)return hit.id;if(date<S[0].from)return S[0].id;let prev=S[0];for(const s of S)if(s.from<=date)prev=s;return prev.id}
-addEventListener('message',e=>{if(e.origin===location.origin&&e.data&&e.data.previewReady){pvReady=true;sendPreview()}});
-function schedulePreview(){clearTimeout(pvT);pvT=setTimeout(sendPreview,180)}
-function sendPreview(){
-  if(!pvReady||!trip)return;
-  const d=day(),st=stopFor(d),have=new Set(siteDay.map(p=>p.hash));
-  const fresh=items.filter(it=>it.hash&&it.thumb&&!it.bad&&(it.taken||'').slice(0,10)===d&&!have.has(it.hash));
-  const photos=[...siteDay.map(p=>({...p,stop:st})),...fresh.map((it,n)=>({id:'new-'+it.hash+n,hash:it.hash,src:it.thumb,w:it.w,h:it.h,date:d,time:(it.taken||'').slice(11,16),stop:st,size:'normal',sizes:[],caption:it.caption||'',batch:'~new',seq:n}))];
-  const L=clean();
-  $('pvEmpty').hidden=photos.length>0||L.length>0;
-  $('pvFrame').contentWindow.postMessage({diary:{photos,notes:[],layouts:L.length?{[d]:{stop:st,rows:L}}:{}}},location.origin);
-}
-/* the frame is a real screen size (iPhone or laptop), scaled down to fit, so photo heights match what visitors see */
-function sizePreview(){
-  const box=$('pvBox'),f=$('pvFrame'),[w,h]=pvMode==='phone'?[390,750]:[1280,800],fixed=matchMedia('(min-width:1100px)').matches;
-  box.style.height='';
-  const s=Math.min(1,box.clientWidth/w,fixed?box.clientHeight/h:1);
-  if(!fixed)box.style.height=Math.round(h*s)+'px';
-  f.style.width=w+'px';f.style.height=h+'px';f.style.transform=`scale(${s})`;f.style.left=Math.max(0,(box.clientWidth-w*s)/2)+'px';f.style.top='0';
-  $('pvMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===pvMode));
-}
-$('pvMode').onclick=e=>{const b=e.target.closest('button');if(!b)return;pvMode=b.dataset.m;store.set('diary.pvMode',pvMode);sizePreview()};
-addEventListener('resize',sizePreview);sizePreview();
-$('toPv').onclick=()=>$('previewCard').scrollIntoView({behavior:'smooth',block:'center'});
-
 async function commit(tree,msg){
   for(let attempt=0;;attempt++){
     const ref=await gh('/git/ref/heads/main');const head=await gh(`/git/commits/${ref.object.sha}`);
@@ -477,6 +186,252 @@ async function commit(tree,msg){
     catch(e){if(attempt<3&&e.status===422){await new Promise(r=>setTimeout(r,1500));continue}throw e}
   }
 }
+$('saveToken').onclick=()=>{const v=$('token').value.trim();if(!v)return;token=v;store.set('diary.token',v);$('token').value='';$('setup').hidden=true;boot()};
+$('saveRepo').onclick=()=>{const v=$('repo').value.trim().replace(/^https:\/\/github.com\//,'').replace(/\/$/,'');if(/^[\w.-]+\/[\w.-]+$/.test(v)){repo=v;store.set('diary.repo',v);setStatus('Repository saved.','ok')}else setStatus('Use the form owner/name.','err')};
+$('forget').onclick=()=>{token=null;store.set('diary.token',null);$('setup').hidden=false};
+$('repo').value=repo;$('actionsLink').href=`https://github.com/${repo}/actions`;
+
+/* ---------- state ----------
+   S[stop] = {blocks:[{id,t,p,side,h,b}], desktop:[ids]|null, captions:{hash:text}, saved:'json as on GitHub', existed}
+   The phone order is the order of blocks; desktop is an optional order of the same blocks for wide screens. */
+let trip=null,diary={photos:[],layouts:{}},stop=null,view=store.get('diary.view')||'desktop',sel=null,focusId=null;
+const S={},imports=[],trashed=new Set();
+const st=()=>S[stop];
+const uid=()=>Math.random().toString(36).slice(2,8);
+const TEMPLATES={
+  full:{label:'Full width',b:{t:'full',p:[null]},ico:'<s></s>'},
+  single:{label:'Single photo',b:{t:'single',p:[null]},ico:'<s></s>',sm:1},
+  row2:{label:'2 side by side',b:{t:'row',p:[null,null]},ico:'<s></s><s></s>'},
+  row3:{label:'3 side by side',b:{t:'row',p:[null,null,null]},ico:'<s></s><s></s><s></s>'},
+  mosaic:{label:'Mosaic',b:{t:'mosaic',p:[null,null,null],side:'left'},ico:'<s style="flex:1.6"></s><i><s></s><s></s></i>'},
+  photoText:{label:'Photo + text',b:{t:'photo-text',p:[null],side:'right',h:'',b:''},ico:'<s style="flex:1.4"></s><s class="t"></s>'},
+  textPhoto:{label:'Text + photo',b:{t:'photo-text',p:[null],side:'left',h:'',b:''},ico:'<s class="t"></s><s style="flex:1.4"></s>'},
+  quote:{label:'Quote',b:{t:'quote',h:''},ico:'<s class="q"></s>'},
+  text:{label:'Text',b:{t:'text',h:'',b:''},ico:'<s class="h"></s><s class="t"></s>'}
+};
+const MAXP={row:4,'photo-text':3},MINP={row:2,'photo-text':1};
+const pad=n=>String(n).padStart(2,'0');
+const localISO=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const fmtD=s=>new Date(s+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+
+/* ---------- photos: everything known, on GitHub or imported in this browser ---------- */
+function allPhotos(){
+  const out=new Map();
+  for(const p of diary.photos||[])if(!trashed.has(p.hash))out.set(p.hash,{...p,thumb:`../img/${p.id}-${p.sizes[0]}.avif`});
+  for(const it of imports)if(it.hash&&!trashed.has(it.hash)&&!out.has(it.hash))out.set(it.hash,{id:'new-'+it.hash,hash:it.hash,src:it.thumb,thumb:it.thumb,w:it.w,h:it.h,isNew:!it.up});
+  return out;
+}
+const blocksOf=id=>S[id]?S[id].blocks:(diary.layouts&&diary.layouts[id]?diary.layouts[id].blocks:[]);
+function placedIn(id){return new Set(blocksOf(id).flatMap(b=>b.p||[]).filter(Boolean))}
+function placedAnywhere(){const s=new Set();for(const x of trip.stops)for(const h of placedIn(x.id))s.add(h);return s}
+function trayList(){const used=placedAnywhere();return [...allPhotos().values()].filter(p=>!used.has(p.hash))}
+
+/* ---------- the preview: the real site, sent this location's blocks ---------- */
+let ready=false;
+addEventListener('message',e=>{
+  if(e.origin!==location.origin||!e.data)return;
+  if(e.data.previewReady){ready=true;render()}
+  if(e.data.edit)onEdit(e.data.edit);
+});
+function render(){
+  if(!ready||!stop)return;
+  const s=st(),photos=[...allPhotos().values()];
+  $('pv').contentWindow.postMessage({diary:{photos,layouts:{[stop]:{blocks:s.blocks,desktop:s.desktop,captions:s.captions}}},edit:{stop,sel,focus:focusId}},location.origin);
+  focusId=null;drawSide();
+}
+function sizeStage(){
+  const stage=$('stage'),fr=$('frame'),W=stage.clientWidth,H=stage.clientHeight;
+  const [w,h]=view==='phone'?[390,Math.min(844,H-56)]:[1280,null];
+  const s=view==='phone'?1:Math.min(1,(W-32)/w);
+  const hh=view==='phone'?h:Math.round((H-56)/s);
+  fr.style.width=w+'px';fr.style.height=hh+'px';fr.style.transform=`scale(${s})`;fr.style.left=Math.max(16,(W-w*s)/2)+'px';
+  $('view').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  const dev=!!(st()&&st().desktop);
+  $('deviate').checked=dev;$('devWrap').classList.toggle('on',dev);
+  $('stageLabel').textContent=view==='phone'?'Phone, 390 px wide':`Laptop, 1280 px wide, shown at ${Math.round(s*100)}%`+(dev?' · desktop order':'');
+}
+addEventListener('resize',sizeStage);
+$('view').onclick=e=>{const b=e.target.closest('button');if(!b)return;view=b.dataset.v;store.set('diary.view',view);sizeStage()};
+$('deviate').onchange=()=>{
+  const s=st();if(!s)return;
+  if($('deviate').checked){s.desktop=s.blocks.map(b=>b.id);view='desktop';store.set('diary.view',view);setStatus('Desktop has its own order now. Rearrange blocks in the Desktop view; the phone keeps its order.','ok')}
+  else{s.desktop=null;setStatus('Desktop uses the phone order again.','ok')}
+  sizeStage();render();
+};
+
+/* the order being edited: desktop's own order in the Desktop view when deviating, otherwise the phone order */
+function order(){const s=st();return view==='desktop'&&s.desktop?s.desktop.slice():s.blocks.map(b=>b.id)}
+function setOrder(ids){const s=st();if(view==='desktop'&&s.desktop)s.desktop=ids;else s.blocks=ids.map(id=>s.blocks.find(b=>b.id===id))}
+function insertBlock(b,to){
+  const s=st(),ids=order();to=Math.max(0,Math.min(to??ids.length,ids.length));
+  if(view==='desktop'&&s.desktop){s.desktop.splice(to,0,b.id);s.blocks.push(b)}
+  else{s.blocks.splice(to,0,b);if(s.desktop){const prev=s.blocks[to-1];s.desktop.splice(prev?s.desktop.indexOf(prev.id)+1:0,0,b.id)}}
+  focusId=b.id;
+}
+const blk=id=>st().blocks.find(b=>b.id===id);
+function firstEmpty(b){const j=(b.p||[]).indexOf(null);return j<0?null:{id:b.id,j}}
+function nextEmpty(after){
+  const ids=order(),start=Math.max(0,ids.indexOf(after.id));
+  const b=blk(after.id);if(b&&b.p){for(let j=after.j+1;j<b.p.length;j++)if(!b.p[j])return{id:b.id,j}}
+  for(const id of ids.slice(start+1)){const e=firstEmpty(blk(id));if(e)return e}
+  return null;
+}
+function addTemplate(key,to){const T=TEMPLATES[key];const b={id:uid(),...JSON.parse(JSON.stringify(T.b))};insertBlock(b,to);sel=firstEmpty(b);changed()}
+function unplaceHash(h){for(const b of st().blocks)if(b.p)b.p=b.p.map(x=>x===h?null:x)}
+function place(id,j,h){unplaceHash(h);const b=blk(id);if(b&&b.p&&j<b.p.length)b.p[j]=h}
+
+function onEdit(m){
+  const s=st();if(!s)return;
+  switch(m.op){
+    case 'select':sel=m.id?{id:m.id,j:m.j}:null;break;
+    case 'place':
+      if(m.from){const a=blk(m.from.id),b=blk(m.id);if(!a||!b)break;const x=a.p[m.from.j];a.p[m.from.j]=b.p[m.j];b.p[m.j]=x}
+      else if(m.hash){place(m.id,m.j,m.hash);sel=sel&&sel.id===m.id&&sel.j===m.j?nextEmpty(sel):sel}
+      break;
+    case 'insertPhoto':{
+      let h=m.hash;if(m.from){const a=blk(m.from.id);if(!a)break;h=a.p[m.from.j];a.p[m.from.j]=null}
+      if(!h)break;unplaceHash(h);insertBlock({id:uid(),t:'single',p:[h]},m.to);break}
+    case 'unplace':{const b=blk(m.id);if(b&&b.p)b.p[m.j]=null;break}
+    case 'move':{const ids=order(),from=ids.indexOf(m.id);if(from<0)break;let to=m.to;ids.splice(from,1);if(from<to)to--;ids.splice(to,0,m.id);setOrder(ids);break}
+    case 'insert':if(TEMPLATES[m.type]){addTemplate(m.type,m.to);return}break;
+    case 'up':case 'down':{const ids=order(),i=ids.indexOf(m.id),k=i+(m.op==='up'?-1:1);if(i<0||k<0||k>=ids.length)return;[ids[i],ids[k]]=[ids[k],ids[i]];setOrder(ids);break}
+    case 'flip':{const b=blk(m.id);if(b)b.side=b.side==='right'?'left':'right';break}
+    case 'more':{const b=blk(m.id);if(b&&b.p.length<(MAXP[b.t]||1)){b.p.push(null);sel={id:b.id,j:b.p.length-1}}break}
+    case 'less':{const b=blk(m.id);if(b&&b.p.length>(MINP[b.t]||1)){b.p.pop();if(sel&&sel.id===b.id&&sel.j>=b.p.length)sel=null}break}
+    case 'del':{s.blocks=s.blocks.filter(b=>b.id!==m.id);if(s.desktop)s.desktop=s.desktop.filter(x=>x!==m.id);if(sel&&sel.id===m.id)sel=null;break}
+    case 'text':{const b=blk(m.id);if(b){b[m.f]=m.v;updatePost()}return}   /* no re-render while typing */
+    case 'blur':break;
+    default:return;
+  }
+  changed();
+}
+function changed(){render();updatePost()}
+
+/* ---------- side panel: palette, tray, selected photo ---------- */
+$('palette').innerHTML=Object.entries(TEMPLATES).map(([k,x])=>`<button class="pal" type="button" draggable="true" data-k="${k}"><span class="ico${x.sm?' sm':''}">${x.ico}</span>${x.label}</button>`).join('');
+$('palette').addEventListener('click',e=>{const b=e.target.closest('.pal');if(b&&st())addTemplate(b.dataset.k)});
+$('palette').addEventListener('dragstart',e=>{const b=e.target.closest('.pal');if(!b)return;e.dataTransfer.setData('text/x-new',b.dataset.k);e.dataTransfer.effectAllowed='copy'});
+let sure=null;
+function drawSide(){
+  const T=trayList(),tray=$('tray');
+  $('trayCount').textContent=T.length?`${T.length} waiting`:'';
+  tray.innerHTML=T.map(p=>`<button type="button" class="t${p.isNew?' new':''}" draggable="true" data-h="${p.hash}" style="background-image:url('${p.thumb}')${p.lqip?`, url(${p.lqip})`:''}" title="${p.isNew?'Not posted yet':''}"><span class="x${sure===p.hash?' sure':''}" data-x="${p.hash}" title="Delete this photo">${sure===p.hash?'Delete?':'×'}</span></button>`).join('');
+  $('trayHint').textContent=sel?'Click photos to fill the selected spot (it moves on to the next empty spot), or drag them onto any spot.':'Drag a photo onto a spot, or between blocks to give it a block of its own. Or click a spot in the preview, then click photos here. Photos you don\'t place stay off the site.';
+  /* selected photo */
+  const b=sel&&blk(sel.id),h=b&&b.p&&b.p[sel.j],p=h&&allPhotos().get(h);
+  $('selPanel').hidden=!p;
+  if(p){$('selImg').src=p.thumb;$('selCap').value=(st().captions[h]??p.caption??'')}
+}
+$('tray').addEventListener('dragstart',e=>{const t=e.target.closest('.t');if(!t)return;e.dataTransfer.setData('text/x-tray',t.dataset.h);e.dataTransfer.effectAllowed='move'});
+$('tray').addEventListener('click',e=>{
+  const x=e.target.closest('[data-x]');
+  if(x){e.stopPropagation();const h=x.dataset.x;
+    if(sure!==h){sure=h;drawSide();return}
+    sure=null;const i=imports.findIndex(it=>it.hash===h&&!it.up);if(i>=0)imports.splice(i,1);else trashed.add(h);
+    changed();return}
+  const t=e.target.closest('.t');if(!t||!st())return;sure=null;
+  if(!sel){setStatus('Click a spot in the preview first, or drag the photo onto one.');drawSide();return}
+  place(sel.id,sel.j,t.dataset.h);sel=nextEmpty(sel);changed();
+});
+$('selCap').oninput=()=>{const b=sel&&blk(sel.id),h=b&&b.p[sel.j];if(h){st().captions[h]=$('selCap').value;updatePost()}};
+$('selOut').onclick=()=>{const b=sel&&blk(sel.id);if(b){b.p[sel.j]=null;changed()}};
+
+/* ---------- importing photos ---------- */
+const fmtShutter=t=>t>=1?`${+t.toFixed(1)} s`:`1/${Math.round(1/t)} s`;
+async function readExif(file){
+  try{const x=await exifr.parse(file,{reviveValues:false,gps:false,xmp:false,icc:false,iptc:false});if(!x)return{};
+    const raw=x.DateTimeOriginal||x.CreateDate;let taken=null;const m=typeof raw==='string'&&raw.match(/^(\d{4}):(\d\d):(\d\d)[ T](\d\d):(\d\d)/);if(m)taken=`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}`;
+    const exif=[x.FocalLength&&`${Math.round(x.FocalLength)} mm`,x.FNumber&&`f/${+(+x.FNumber).toFixed(1)}`,x.ExposureTime&&fmtShutter(+x.ExposureTime),x.ISO&&`ISO ${x.ISO}`].filter(Boolean).join(' · ');
+    return{taken,exif}}catch{return{}}
+}
+function loadImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>res({im,u});im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('could not be opened'))};im.src=u})}
+function shrink(im){
+  const w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,MAX/Math.max(w,h));
+  const c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);
+  const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(im,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(r,'image/jpeg',.9));   /* re-encoding drops all metadata, GPS included */
+}
+$('pickBtn').onclick=()=>$('files').click();
+$('files').onchange=e=>{const f=[...e.target.files];e.target.value='';addFiles(f)};
+async function addFiles(files){
+  files=files.filter(f=>/^image\//.test(f.type)||/\.(jpe?g|png|webp|tiff?)$/i.test(f.name));
+  let n=0,bad=0;
+  for(const file of files){
+    setStatus(`Importing ${++n} of ${files.length}…`);
+    try{
+      const [x,{im,u}]=await Promise.all([readExif(file),loadImg(file)]);
+      const blob=await shrink(im);URL.revokeObjectURL(u);
+      const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-1',await blob.arrayBuffer()))].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,8);
+      if(!imports.some(i=>i.hash===hash))imports.push({hash,blob,thumb:URL.createObjectURL(blob),w:im.naturalWidth,h:im.naturalHeight,taken:x.taken||localISO(new Date(file.lastModified||Date.now())),exif:x.exif||'',up:false});
+      drawSide();
+    }catch{bad++}
+  }
+  setStatus(bad?`${bad} photo${bad>1?'s':''} could not be opened (HEIC? export as JPEG).`:`${files.length} photo${files.length>1?'s':''} imported. Place them, then Post.`,bad?'err':'ok');
+  changed();
+}
+let dragDepth=0;
+addEventListener('dragenter',e=>{if([...e.dataTransfer.types].includes('Files')){e.preventDefault();dragDepth++;document.body.classList.add('dropping')}});
+addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('Files'))e.preventDefault()});
+addEventListener('dragleave',()=>{if(--dragDepth<=0){dragDepth=0;document.body.classList.remove('dropping')}});
+addEventListener('drop',e=>{if(![...e.dataTransfer.types].includes('Files'))return;e.preventDefault();dragDepth=0;document.body.classList.remove('dropping');addFiles([...e.dataTransfer.files])});
+
+/* ---------- locations ---------- */
+function stopFor(date){const T=trip.stops;const hit=T.find(s=>s.from<=date&&date<s.to);if(hit)return hit.id;if(date<T[0].from)return T[0].id;let prev=T[0];for(const s of T)if(s.from<=date)prev=s;return prev.id}
+const json=s=>JSON.stringify({blocks:s.blocks,...(s.desktop?{desktop:s.desktop}:{}),captions:Object.fromEntries(Object.entries(s.captions).filter(([h,v])=>v&&s.blocks.some(b=>(b.p||[]).includes(h))))});
+function fillStops(){
+  $('stop').innerHTML=trip.stops.map(s=>{const n=blocksOf(s.id).length;return `<option value="${s.id}">${n?'● ':''}${s.name} · ${fmtD(s.from)}–${fmtD(s.to)}</option>`}).join('');
+  $('stop').value=stop;
+}
+async function openStop(id){
+  stop=id;sel=null;store.set('diary.stop',id);fillStops();
+  if(!S[id]){
+    S[id]={blocks:[],desktop:null,captions:{},saved:'',existed:false,loading:true};
+    try{const L=await gh(`/contents/layouts/${id}.json`,{raw:true});S[id]={blocks:(L.blocks||[]).map(b=>({...b,id:b.id||uid()})),desktop:L.desktop||null,captions:L.captions||{},existed:true}}
+    catch(e){S[id]={blocks:[],desktop:null,captions:{},existed:false};if(e.status!==404)setStatus('Could not load this location: '+e.message,'err')}
+    S[id].saved=json(S[id]);
+  }
+  sizeStage();render();updatePost();
+}
+$('stop').onchange=()=>openStop($('stop').value);
+
+/* ---------- post: new photos, changed locations and deleted photos in one commit ---------- */
+const dirtyStops=()=>Object.entries(S).filter(([,s])=>!s.loading&&json(s)!==s.saved).map(([id])=>id);
+const pendingTrash=()=>[...trashed].filter(h=>(diary.photos||[]).some(p=>p.hash===h));
+function updatePost(){
+  const n=imports.filter(i=>!i.up).length,d=dirtyStops(),t=pendingTrash().length;
+  $('post').disabled=!token||(!n&&!d.length&&!t);
+  $('post').textContent=n||d.length||t?['Post',n&&`${n} photo${n>1?'s':''}`,d.length&&(d.length>1?`${d.length} locations`:'changes'),t&&`delete ${t}`].filter(Boolean).join(' · ').replace('Post · ','Post: '):'Post';
+  fillStopsLight();
+}
+function fillStopsLight(){const d=new Set(dirtyStops());[...$('stop').options].forEach(o=>{const s=trip.stops.find(x=>x.id===o.value);const n=blocksOf(s.id).length;o.textContent=`${n?'● ':''}${s.name} · ${fmtD(s.from)}–${fmtD(s.to)}${d.has(s.id)?' (unsaved)':''}`})}
+$('post').onclick=async()=>{
+  const btn=$('post');btn.disabled=true;
+  try{
+    const tree=[],batch=Date.now().toString(36),fresh=imports.filter(i=>!i.up);
+    for(const [n,it] of fresh.entries()){
+      setStatus(`Uploading photo ${n+1} of ${fresh.length}…`);
+      const name=`inbox/${it.taken.replace(/[-:T]/g,'').slice(0,12)}-${it.hash}`;
+      const {sha}=await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:b64(await it.blob.arrayBuffer()),encoding:'base64'})});
+      tree.push({path:name+'.jpg',mode:'100644',type:'blob',sha});
+      tree.push({path:name+'.json',mode:'100644',type:'blob',content:JSON.stringify({caption:'',size:'normal',taken:it.taken,exif:it.exif,batch,seq:n})+'\n'});
+    }
+    const d=dirtyStops();
+    for(const id of d){const s=S[id];
+      if(s.blocks.length)tree.push({path:`layouts/${id}.json`,mode:'100644',type:'blob',content:JSON.stringify(JSON.parse(json(s)),null,1)+'\n'});
+      else if(s.existed)tree.push({path:`layouts/${id}.json`,mode:'100644',type:'blob',sha:null});}
+    const t=pendingTrash();for(const h of t)tree.push({path:`trash/${h}`,mode:'100644',type:'blob',content:'remove\n'});
+    if(!tree.length)throw new Error('Nothing to post.');
+    setStatus('Saving…');
+    const names=d.map(id=>trip.stops.find(s=>s.id===id).name);
+    await commit(tree,[fresh.length&&`Add ${fresh.length} photo${fresh.length>1?'s':''}`,names.length&&`layout for ${names.join(', ')}`,t.length&&`remove ${t.length} photo${t.length>1?'s':''}`].filter(Boolean).join(', ').replace(/^./,c=>c.toUpperCase()));
+    fresh.forEach(i=>i.up=true);
+    for(const id of d){S[id].saved=json(S[id]);S[id].existed=S[id].blocks.length>0}
+    setStatus('Posted. The site updates in about two minutes.','ok');
+  }catch(e){
+    setStatus(e.status===401?'GitHub did not accept the token. Check it in Settings.':e.status===404?'Repository not found, or the token has no access to it.':'Something went wrong: '+e.message,'err');
+  }finally{updatePost();drawSide()}
+};
+addEventListener('beforeunload',e=>{if(!$('post').disabled){e.preventDefault();e.returnValue=''}});
 
 /* ---------- site texts (stored in data/trip.json) ---------- */
 const TXT={tTitle:'title',tHeadline:'headline',tIntro:'intro',tFooter:'footer'};
@@ -493,39 +448,16 @@ $('saveTexts').onclick=async()=>{const b=$('saveTexts');b.disabled=true;$('texts
     $('textsHint').textContent='Saved. The site updates in about two minutes.'}
   catch(e){$('textsHint').textContent='Could not save: '+e.message}finally{b.disabled=false}};
 
-/* ---------- post: one commit with every photo, its sidecar and the note ---------- */
-$('post').onclick=async()=>{
-  const btn=$('post');btn.disabled=true;
-  try{
-    const good=items.filter(i=>!i.bad&&i.blobP);
-    const tree=[],batch=Date.now().toString(36);
-    for(const [n,it] of good.entries()){
-      setStatus(`Uploading photo ${n+1} of ${good.length}…`);
-      const blob=await it.blobP;const t=(it.taken||localISO(new Date())).replace(/[-:T]/g,'').slice(0,12);
-      const name=`inbox/${t}-${Math.random().toString(36).slice(2,6)}`;
-      const {sha}=await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:b64(await blob.arrayBuffer()),encoding:'base64'})});
-      tree.push({path:name+'.jpg',mode:'100644',type:'blob',sha});
-      tree.push({path:name+'.json',mode:'100644',type:'blob',content:JSON.stringify({caption:it.caption.trim(),size:'normal',taken:it.taken,exif:it.exif,batch,seq:n})+'\n'});
-    }
-    /* the layout replaces the day's old notes file; an empty layout lets the site arrange the day again */
-    const nd=day(),L=clean(),layoutChanged=loadedDay===nd&&layoutJSON()!==loadedJSON;
-    if(layoutChanged){
-      if(L.length)tree.push({path:`layouts/${nd}.json`,mode:'100644',type:'blob',content:JSON.stringify({rows:L},null,1)+'\n'});
-      else if(hadLayout)tree.push({path:`layouts/${nd}.json`,mode:'100644',type:'blob',sha:null});
-      if(hadNotes)tree.push({path:`notes/${nd}.md`,mode:'100644',type:'blob',sha:null});
-    }
-    if(!tree.length)throw new Error('Nothing to post.');
-    setStatus('Saving…');
-    const msg=good.length?`Add ${good.length} photo${good.length>1?'s':''}${layoutChanged?' and layout':''}`:`Layout for ${nd}`;
-    await commit(tree,msg);
-    items.splice(0).forEach(i=>i.el.remove());noteTouched=false;getDiary(true);
-    hadLayout=L.length>0;hadNotes=false;loadedJSON=layoutJSON();drawLayout();
-    setStatus('Posted. The site updates in about two minutes.','ok');
-  }catch(e){
-    setStatus(e.status===401?'GitHub did not accept the token. Check it in Settings.':e.status===404?'Repository not found, or the token has no access to it.':'Something went wrong: '+e.message,'err');
-  }finally{refresh()}
-};
-refresh();loadNote();
+/* ---------- start ---------- */
+async function boot(){
+  if(!token){$('setup').hidden=false;return}
+  try{trip=await fetch('../data/trip.json',{cache:'no-cache'}).then(r=>r.json())}catch{setStatus('Could not load the route.','err');return}
+  try{diary=await gh('/contents/data/diary.json',{raw:true})}catch(e){diary={photos:[],layouts:{}};if(e.status!==404)setStatus('Could not load the photos: '+e.message,'err')}
+  diary.layouts=diary.layouts||{};
+  const remembered=store.get('diary.stop');
+  openStop(remembered&&trip.stops.some(s=>s.id===remembered)?remembered:stopFor(localISO(new Date()).slice(0,10)));
+}
+sizeStage();boot();
 })();
 </script>
 </body>
