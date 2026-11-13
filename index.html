@@ -25,7 +25,7 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
-body{margin:0;background:var(--basalt);color:var(--pumice);font:400 16px/1.5 var(--f-text);-webkit-font-smoothing:antialiased;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px;position:relative}
+body{margin:0;overflow-x:clip;background:var(--basalt);color:var(--pumice);font:400 16px/1.5 var(--f-text);-webkit-font-smoothing:antialiased;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px;position:relative}
 .sky{position:absolute;left:0;right:0;top:0;height:640px;z-index:0;pointer-events:none;background:linear-gradient(#0a0f24,#17193d 45%,#3b1e3d 72%,#121110)}
 .sky canvas{display:block;width:100%;height:100%}
 .page{position:relative;z-index:1}
@@ -100,25 +100,35 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .third{grid-column:span 4;aspect-ratio:4/5}
 .wide{grid-column:span 7;aspect-ratio:3/2}
 .port{grid-column:span 5;aspect-ratio:4/5}
-.note{display:flex;flex-direction:column;justify-content:center;gap:12px;padding:clamp(28px,4vw,56px) 0;max-width:780px}
-.note.n7{grid-column:span 7}
-.note.solo-note{grid-column:2/-2;padding-block:16px}
-.pp{grid-column:span 6;aspect-ratio:4/5}
-.solo{grid-column:4/10;aspect-ratio:4/5}
+.note{display:flex;flex-direction:column;gap:14px;margin:0}
+.note .h{display:flex;flex-direction:column;gap:8px}
+.note .b{display:flex;flex-direction:column;gap:.85em}
 .note p{margin:0}
-.note .q{font-size:clamp(22px,2.4vw,32px);line-height:1.22;font-weight:500;letter-spacing:-.02em;text-wrap:balance}
-.note .body{font-size:clamp(16px,1.25vw,18px);line-height:1.6;color:rgba(237,232,224,.85);max-width:62ch;text-wrap:pretty}
-.note.tile{max-width:none;padding:0 clamp(16px,3vw,48px);min-width:0;overflow:hidden}
-.note.tile .q{font-size:clamp(20px,2vw,30px)}
+.note .q{font-size:clamp(24px,2.5vw,34px);line-height:1.15;font-weight:650;letter-spacing:-.025em;text-wrap:balance}
+.note .body{font-size:clamp(16px,1.2vw,18px);line-height:1.6;color:rgba(237,232,224,.82);max-width:62ch;text-wrap:pretty}
 .note span{font-size:14px;color:var(--grey)}
+/* next to photos, inside a row */
+.note.tile{justify-content:center;min-width:0;overflow:hidden;padding:0 clamp(20px,3vw,56px) 0 clamp(4px,1vw,16px)}
+.note.tile.right{padding:0 clamp(4px,1vw,16px) 0 clamp(20px,3vw,56px)}
+.note.tile .q{font-size:clamp(22px,2.1vw,32px)}
+/* without photos next to it */
+.note.pull{align-items:center;text-align:center;padding:clamp(40px,6vw,88px) 0}
+.note.pull .q{font-size:clamp(28px,3.6vw,52px);font-weight:700;max-width:22ch}
+.note.spread{display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,5vw,96px);padding:clamp(40px,6vw,88px) 0;align-items:start}
+.note.spread .q{font-size:clamp(26px,3vw,42px)}
+.note.spread.only-body{grid-template-columns:minmax(0,62ch);justify-content:center}
+/* header photos: edge to edge, full screen height */
+.hdr{width:100vw;margin-left:calc(50% - 50vw);height:min(92svh,130vw)}
+.hdr .ph{width:100%;height:100%;border-radius:0}
+.hdr .ph img{object-position:center 35%}
 @media (max-width:760px){
   .full{aspect-ratio:4/3}
-  .big,.side,.half,.wide,.port,.note,.note.n7,.note.solo-note,.solo{grid-column:1/-1;grid-row:auto}
+  .note.spread{grid-template-columns:1fr;gap:16px}
   .pp{grid-column:span 6}
   .big{aspect-ratio:4/3}
   .third{grid-column:span 6}
   .third:nth-child(3n+1){grid-column:1/-1;aspect-ratio:4/3}
-  .note{padding:24px 4px}
+  .note:not(.pull):not(.spread){padding:28px 2px}
   .stop{padding-top:72px;scroll-margin-top:88px}
   .ridge{height:132px}
 }

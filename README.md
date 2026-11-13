@@ -9,7 +9,7 @@ A photo diary of 73 days from Guatemala to Nicaragua (27 Nov 2026 – 6 Feb 2027
 
 1. Copy the photos from the camera to your phone (Sony Creators' App, or the SD card reader).
 2. Open the **post** page and tap **Choose photos**.
-3. Optional: add a caption, tick **Full width** for the photo that should open the day, and write a short note for the day.
+3. Optional: add a caption, and pick a size per photo: **Normal**, **Big** (a row of its own) or **Header ★** (edge to edge, full screen height; use it for the very best shots). Add notes for the day: a short bold heading and/or text. They sit next to the photos, alternating left and right.
 4. Tap **Post**. The site updates in about two minutes.
 
 The capture date in each photo decides the day and the stop. When you land, set the camera clock to local time (UTC−6). All four countries use the same time zone, so you only do this once.
@@ -34,9 +34,9 @@ All of these can be done in the GitHub app or on github.com, then the site rebui
 
 | What | Where |
 | --- | --- |
-| Change a caption, move a photo to another stop, or make it full width | `data/diary.json`: edit `caption`, `stop` (add `"stopFixed": true`), or `hero` |
+| Change a caption, move a photo to another stop, or change its size | `data/diary.json`: edit `caption`, `stop` (add `"stopFixed": true`), or `size` (`normal`, `big` or `header`) |
 | Remove a photo | `data/diary.json`: delete its entry. The image files are cleaned up on the next build. |
-| Edit or delete notes | On the post page: pick the day, the existing notes load, edit and post. Or edit `notes/YYYY-MM-DD.md`: notes are separated by a line with `---`, and a last line starting with `— ` becomes the small line underneath. |
+| Edit or delete notes | On the post page: pick the day, the existing notes load, edit and post. Or edit `notes/YYYY-MM-DD.md`: notes are separated by a line with `---`, and a first line starting with `# ` is the heading. |
 | Change the route, dates or altitudes | `data/trip.json`. Photos move to the right stop automatically. |
 | Rebuild by hand | **Actions → Process photos and publish → Run workflow** |
 

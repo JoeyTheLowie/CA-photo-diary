@@ -1,7 +1,7 @@
 // Turns uploads in inbox/ into web-ready photos and rebuilds data/diary.json.
 //
 //   inbox/<anything>.jpg            a photo (JPEG, PNG, WebP or TIFF)
-//   inbox/<anything>.json           optional sidecar: {"caption", "hero", "stop", "taken": "2026-12-01T23:41", "exif"}
+//   inbox/<anything>.json           optional sidecar: {"caption", "size": "normal|big|header", "stop", "taken": "2026-12-01T23:41", "exif"}
 //   inbox/<stop-id>/<anything>.jpg  a subfolder named after a stop forces that stop
 //   notes/2026-12-01.md             a short note for that day; a last line starting with "—" becomes its caption
 //
@@ -99,7 +99,7 @@ for (const file of files) {
     id, hash, date, time, stop: fixed || stopFor(date), ...(fixed ? {stopFixed: true} : {}),
     w: fw, h: fh, sizes,
     caption: (side.caption ?? (typeof x?.ImageDescription === 'string' ? x.ImageDescription : '')).trim(),
-    hero: !!side.hero,
+    size: ['big', 'header'].includes(side.size) ? side.size : side.hero ? 'big' : 'normal',
     exif: side.exif || exifLine(x),
     lqip
   });
@@ -120,10 +120,12 @@ for (const f of (await fs.readdir(NOTES).catch(() => [])).sort()) {
   const blocks = (await fs.readFile(path.join(NOTES, f), 'utf8')).trim().split(/\n\s*-{3,}\s*\n/);
   blocks.forEach((block, i) => {
     const lines = block.trim().split('\n');
+    let heading = '';
+    if (/^#\s+/.test(lines[0])) heading = lines.shift().replace(/^#\s+/, '').trim();
     let caption = '';
     if (lines.length > 1 && /^\s*(—|--|–)\s/.test(lines.at(-1))) caption = lines.pop().replace(/^\s*(—|--|–)\s*/, '').trim();
     const text = lines.join('\n').split(/\n\s*\n/).map(par => par.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
-    if (text) diary.notes.push({date: m[1], stop: m[2] && stopIds.has(m[2]) ? m[2] : stopFor(m[1]), text, caption, i});
+    if (text || heading) diary.notes.push({date: m[1], stop: m[2] && stopIds.has(m[2]) ? m[2] : stopFor(m[1]), heading, text, caption, i});
   });
 }
 
