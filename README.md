@@ -2,8 +2,8 @@
 
 A photo diary of 73 days from Guatemala to Nicaragua (27 Nov 2026 – 6 Feb 2027).
 
-- **Site:** https://joeythelowie.github.io/CA-photo-diary/
-- **Post from your phone:** https://joeythelowie.github.io/CA-photo-diary/post/
+- **Site:** https://joeonthego.nl/
+- **Post from your phone:** https://joeonthego.nl/post/
 
 ## How to post
 
