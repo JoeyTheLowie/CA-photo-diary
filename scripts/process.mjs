@@ -101,6 +101,7 @@ for (const file of files) {
     caption: (side.caption ?? (typeof x?.ImageDescription === 'string' ? x.ImageDescription : '')).trim(),
     size: ['big', 'header'].includes(side.size) ? side.size : side.hero ? 'big' : 'normal',
     exif: side.exif || exifLine(x),
+    ...(side.batch ? {batch: String(side.batch), seq: +side.seq || 0} : {}),
     lqip
   });
   known.add(hash); added++;

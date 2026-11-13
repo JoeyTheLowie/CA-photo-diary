@@ -5,6 +5,7 @@
  "days": 73,
  "home": {"name": "Amsterdam", "date": "2026-11-27"},
  "finish": {"name": "Managua", "date": "2027-02-06"},
+ "texts": {"title": "Joe in Central America", "headline": "Volcanoes, Jungle, Reef", "intro": "Seventy-three days from Guatemala to Nicaragua with a Sony A7 IV. Newest photos first. Tap a point on the ridge to jump to that place.", "footer": "All photos by Joe, shot on a Sony A7 IV."},
  "stops": [
   {"id": "antigua", "name": "Antigua & Acatenango", "country": "Guatemala", "from": "2026-11-27", "to": "2026-12-02", "alt": 3976, "peak": "Acatenango"},
   {"id": "xela", "name": "Xela", "country": "Guatemala", "from": "2026-12-02", "to": "2026-12-08", "alt": 4220, "peak": "Tajumulco"},

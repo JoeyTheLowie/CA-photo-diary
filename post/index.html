@@ -34,7 +34,7 @@ textarea{resize:vertical;min-height:96px}
 .pick{border:1.5px dashed var(--grey-2);background:transparent;padding:28px 16px;width:100%;flex-direction:column;gap:4px}
 .pick span{font-size:13px;color:var(--grey)}
 .photos{display:flex;flex-direction:column;gap:10px}
-.photo{display:grid;grid-template-columns:96px 1fr;gap:12px;background:var(--ash);border-radius:14px;padding:10px}
+.photo{display:grid;grid-template-columns:20px 96px 1fr;gap:12px;background:var(--ash);border-radius:14px;padding:10px}
 .photo img{width:96px;height:96px;object-fit:cover;border-radius:8px;display:block;background:var(--ash-2)}
 .photo .f{display:flex;flex-direction:column;gap:8px;min-width:0}
 .photo .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -61,6 +61,9 @@ textarea{resize:vertical;min-height:96px}
 .hint a{color:var(--pumice)}
 details summary{cursor:pointer;color:var(--grey);font-size:14px}
 details[open] summary{margin-bottom:12px}
+.grip{align-self:center;color:var(--grey-2);font-size:20px;cursor:grab;touch-action:none;user-select:none;text-align:center;padding:16px 0}
+.photo.lift{outline:1.5px solid var(--ember);opacity:.92}
+body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -78,7 +81,7 @@ details[open] summary{margin-bottom:12px}
 
   <section>
     <input id="files" type="file" accept="image/*" multiple hidden>
-    <button class="btn pick" id="pickBtn" type="button">Choose photos<span>Dates and camera settings are read from the photos. Location data is removed.</span></button>
+    <button class="btn pick" id="pickBtn" type="button">Choose photos<span>Or drag them onto this page. Drag ⠿ to change the order. Dates and camera settings are read from the photos. Location data is removed.</span></button>
   </section>
 
   <section class="photos" id="photos" aria-live="polite"></section>
@@ -91,6 +94,16 @@ details[open] summary{margin-bottom:12px}
     <p class="hint">Each note sits next to the day's photos, alternating left and right. A heading without text becomes a big centred quote.</p>
     <p class="hint" id="noteHint"></p>
   </section>
+
+  <details class="card" id="textsCard">
+    <summary>Site texts</summary>
+    <label>Site name (top left)<input id="tTitle" type="text"></label>
+    <label>Headline<input id="tHeadline" type="text"></label>
+    <label>Intro<textarea id="tIntro"></textarea></label>
+    <label>Footer<input id="tFooter" type="text"></label>
+    <button class="btn small" id="saveTexts" type="button" style="align-self:flex-start">Save texts</button>
+    <p class="hint" id="textsHint"></p>
+  </details>
 
   <details class="card">
     <summary>Settings</summary>
@@ -158,17 +171,19 @@ async function shrink(im){
   return new Promise(r=>c.toBlob(r,'image/jpeg',.9));   /* re-encoding drops all metadata, GPS included */
 }
 $('pickBtn').onclick=()=>$('files').click();
-$('files').onchange=async e=>{
-  const files=[...e.target.files];e.target.value='';
+$('files').onchange=e=>{const f=[...e.target.files];e.target.value='';addFiles(f)};
+async function addFiles(files){
+  files=files.filter(f=>/^image\//.test(f.type)||/\.(jpe?g|png|heic|webp|tiff?)$/i.test(f.name));
   for(const file of files){
     const it={file,caption:'',size:'normal'};items.push(it);
     const el=document.createElement('div');el.className='photo';it.el=el;
-    el.innerHTML=`<img alt=""><div class="f"><input class="cap" type="text" placeholder="Caption (optional)"><div class="row"><input class="when" type="datetime-local" aria-label="Taken at"></div><div class="seg" role="radiogroup" aria-label="How big"><button type="button" data-s="normal" class="on">Normal</button><button type="button" data-s="big">Big</button><button type="button" data-s="header">Header ★</button></div><div class="row"><span class="meta">Reading…</span><button class="x" type="button" aria-label="Remove">×</button></div></div>`;
+    el.innerHTML=`<div class="grip" aria-label="Drag to reorder" title="Drag to reorder">⠿</div><img alt=""><div class="f"><input class="cap" type="text" placeholder="Caption (optional)"><div class="row"><input class="when" type="datetime-local" aria-label="Taken at"></div><div class="seg" role="radiogroup" aria-label="How big"><button type="button" data-s="normal" class="on">Normal</button><button type="button" data-s="big">Big</button><button type="button" data-s="header">Header</button></div><div class="row"><span class="meta">Reading…</span><button class="x" type="button" aria-label="Remove">×</button></div></div>`;
     $('photos').appendChild(el);
     el.querySelector('.cap').oninput=ev=>it.caption=ev.target.value;
     el.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{it.size=b.dataset.s;el.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b))});
     el.querySelector('.when').onchange=ev=>{it.taken=ev.target.value;syncNoteDate()};
     el.querySelector('.x').onclick=()=>{items.splice(items.indexOf(it),1);el.remove();refresh()};
+    grip(el.querySelector('.grip'),el);
     refresh();
     try{
       const [x,{im,u}]=await Promise.all([readExif(file),loadImg(file)]);
@@ -180,7 +195,29 @@ $('files').onchange=async e=>{
       syncNoteDate();
     }catch(err){el.querySelector('.meta').textContent=err.message;it.bad=true}
   }
-};
+}
+/* drop photos anywhere on the page (desktop) */
+let dragDepth=0;
+addEventListener('dragenter',e=>{if([...e.dataTransfer.types].includes('Files')){e.preventDefault();dragDepth++;document.body.classList.add('dropping')}});
+addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('Files'))e.preventDefault()});
+addEventListener('dragleave',()=>{if(--dragDepth<=0){dragDepth=0;document.body.classList.remove('dropping')}});
+addEventListener('drop',e=>{e.preventDefault();dragDepth=0;document.body.classList.remove('dropping');if(e.dataTransfer.files.length)addFiles([...e.dataTransfer.files])});
+/* reorder by dragging the handle (mouse and touch); the order is kept on the site */
+function grip(h,el){
+  const list=$('photos');
+  const moveTo=y=>{const sib=[...list.children].filter(x=>x!==el);
+    const after=sib.find(x=>{const r=x.getBoundingClientRect();return y<r.top+r.height/2});
+    if(after!==el.nextElementSibling)list.insertBefore(el,after||null)};
+  const done=()=>{el.classList.remove('lift');const order=[...list.children];items.sort((a,b)=>order.indexOf(a.el)-order.indexOf(b.el))};
+  /* mouse */
+  h.addEventListener('mousedown',e=>{e.preventDefault();el.classList.add('lift');
+    const mv=ev=>moveTo(ev.clientY),up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);done()};
+    addEventListener('mousemove',mv);addEventListener('mouseup',up)});
+  /* touch */
+  h.addEventListener('touchstart',e=>{e.preventDefault();el.classList.add('lift');
+    const mv=ev=>{ev.preventDefault();moveTo(ev.touches[0].clientY)},up=()=>{removeEventListener('touchmove',mv);removeEventListener('touchend',up);removeEventListener('touchcancel',up);done()};
+    addEventListener('touchmove',mv,{passive:false});addEventListener('touchend',up);addEventListener('touchcancel',up)},{passive:false});
+}
 
 /* ---------- notes: one file per day, blocks separated by a line with --- ---------- */
 function addBlock(h='',t=''){
@@ -215,19 +252,44 @@ async function loadNote(){
   catch(e){if(e.status!==404)$('noteHint').textContent='Could not check for existing notes: '+e.message}
 }
 
+async function commit(tree,msg){
+  for(let attempt=0;;attempt++){
+    const ref=await gh('/git/ref/heads/main');const head=await gh(`/git/commits/${ref.object.sha}`);
+    const t=await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:head.tree.sha,tree})});
+    const c=await gh('/git/commits',{method:'POST',body:JSON.stringify({message:msg,tree:t.sha,parents:[ref.object.sha]})});
+    try{await gh('/git/refs/heads/main',{method:'PATCH',body:JSON.stringify({sha:c.sha})});return}
+    catch(e){if(attempt<3&&e.status===422){await new Promise(r=>setTimeout(r,1500));continue}throw e}
+  }
+}
+
+/* ---------- site texts (stored in data/trip.json) ---------- */
+const TXT={tTitle:'title',tHeadline:'headline',tIntro:'intro',tFooter:'footer'};
+const fmtTrip=t=>{const head=Object.entries(t).filter(([k])=>k!=='stops');return '{\n'+head.map(([k,v])=>` ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n')+',\n "stops": [\n  '+t.stops.map(x=>JSON.stringify(x)).join(',\n  ')+'\n ]\n}\n'};
+$('textsCard').addEventListener('toggle',async()=>{if(!$('textsCard').open||!token)return;
+  try{const f=await gh('/contents/data/trip.json');const t=JSON.parse(fromb64(f.content));const x=t.texts||{};
+    for(const [id,k] of Object.entries(TXT))$(id).value=x[k]??(k==='title'?t.title||'':'');$('textsHint').textContent=''}
+  catch(e){$('textsHint').textContent='Could not load the texts: '+e.message}});
+$('saveTexts').onclick=async()=>{const b=$('saveTexts');b.disabled=true;$('textsHint').textContent='Saving…';
+  try{const f=await gh('/contents/data/trip.json');const t=JSON.parse(fromb64(f.content));t.texts=t.texts||{};
+    for(const [id,k] of Object.entries(TXT)){const v=$(id).value.trim();if(v)t.texts[k]=v;else delete t.texts[k]}
+    if(t.texts.title)t.title=t.texts.title;
+    await commit([{path:'data/trip.json',mode:'100644',type:'blob',content:fmtTrip(t)}],'Update site texts');
+    $('textsHint').textContent='Saved. The site updates in about two minutes.'}
+  catch(e){$('textsHint').textContent='Could not save: '+e.message}finally{b.disabled=false}};
+
 /* ---------- post: one commit with every photo, its sidecar and the note ---------- */
 $('post').onclick=async()=>{
   const btn=$('post');btn.disabled=true;
   try{
     const good=items.filter(i=>!i.bad&&i.blobP);
-    const tree=[];
+    const tree=[],batch=Date.now().toString(36);
     for(const [n,it] of good.entries()){
       setStatus(`Uploading photo ${n+1} of ${good.length}…`);
       const blob=await it.blobP;const t=(it.taken||localISO(new Date())).replace(/[-:T]/g,'').slice(0,12);
       const name=`inbox/${t}-${Math.random().toString(36).slice(2,6)}`;
       const {sha}=await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:b64(await blob.arrayBuffer()),encoding:'base64'})});
       tree.push({path:name+'.jpg',mode:'100644',type:'blob',sha});
-      tree.push({path:name+'.json',mode:'100644',type:'blob',content:JSON.stringify({caption:it.caption.trim(),size:it.size,taken:it.taken,exif:it.exif})+'\n'});
+      tree.push({path:name+'.json',mode:'100644',type:'blob',content:JSON.stringify({caption:it.caption.trim(),size:it.size,taken:it.taken,exif:it.exif,batch,seq:n})+'\n'});
     }
     const nd=$('noteDate').value,nt=serialize();
     const changed=!(loadedNote===nd&&loadedText===nt);
@@ -236,13 +298,7 @@ $('post').onclick=async()=>{
     if(!tree.length)throw new Error('Nothing to post.');
     setStatus('Saving…');
     const msg=good.length?`Add ${good.length} photo${good.length>1?'s':''}${nt?' and notes':''}`:`Notes for ${nd}`;
-    for(let attempt=0;;attempt++){
-      const ref=await gh('/git/ref/heads/main');const head=await gh(`/git/commits/${ref.object.sha}`);
-      const t=await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:head.tree.sha,tree})});
-      const c=await gh('/git/commits',{method:'POST',body:JSON.stringify({message:msg,tree:t.sha,parents:[ref.object.sha]})});
-      try{await gh('/git/refs/heads/main',{method:'PATCH',body:JSON.stringify({sha:c.sha})});break}
-      catch(e){if(attempt<3&&e.status===422){await new Promise(r=>setTimeout(r,1500));continue}throw e}
-    }
+    await commit(tree,msg);
     items.splice(0).forEach(i=>i.el.remove());setBlocks([]);$('noteHint').textContent='';noteTouched=false;loadedNote=null;loadedText='';
     setStatus('Posted. The site updates in about two minutes.','ok');
   }catch(e){

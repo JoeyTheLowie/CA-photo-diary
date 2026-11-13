@@ -30,6 +30,13 @@ function render(trip, diary) {
   const photos = (diary.photos || []).filter(p => stopById[p.stop]);
   const notes = (diary.notes || []).filter(n => stopById[n.stop]);
 
+  /* ---------- texts (editable on the post page, stored in trip.json) ---------- */
+  const X = trip.texts || {};
+  const setText = (sel, v) => { const el = document.querySelector(sel); if (el && v) el.textContent = v; };
+  setText('.topbar b', X.title || trip.title); setText('.intro h1', X.headline); setText('.intro p', X.intro); setText('.foot span', X.footer);
+  if (X.title || trip.title) document.title = X.title || trip.title;
+  dispatchEvent(new Event('resize'));   /* the hero scene measures the intro */
+
   /* ---------- top bar ---------- */
   const dn = dayNo(TODAY);
   $('dayCount').textContent = dn < 1 ? `Starts in ${1 - dn} day${dn === 0 ? '' : 's'}`
@@ -172,7 +179,7 @@ function render(trip, diary) {
       const d = D(date), day = document.createElement('div'); day.className = 'day';
       const n = dayNo(d);
       day.innerHTML = `<div class="day-label">${fmtDay(d)}${n >= 1 && n <= TRIP_DAYS ? `<span>Day ${n}</span>` : ''}</div>`;
-      const list = photos.filter(p => p.stop === s.id && p.date === date).sort((a, b) => (a.time || '').localeCompare(b.time || '') || a.id.localeCompare(b.id));
+      const list = photos.filter(p => p.stop === s.id && p.date === date).sort((a, b) => (a.batch && a.batch === b.batch ? a.seq - b.seq : 0) || (a.time || '').localeCompare(b.time || '') || a.id.localeCompare(b.id));
       const dayNotes = notes.filter(x => x.stop === s.id && x.date === date).sort((a, b) => (a.i || 0) - (b.i || 0));
       const m = document.createElement('div'); m.className = 'rows';
       DAYS.push({el: m, list, figs: new Map(list.map(p => [p, figure(p, s)])), notes: dayNotes.map(noteEl), side0: (noteCount += dayNotes.length) - dayNotes.length, w: 0});
