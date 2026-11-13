@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Joe in Central America</title>
+<meta name="description" content="A photo diary of 73 days through Guatemala, Belize, Honduras and Nicaragua.">
+<meta name="theme-color" content="#121110">
+<meta property="og:title" content="Joe in Central America">
+<meta property="og:description" content="Volcanoes, jungle, reef. A photo diary from Guatemala to Nicaragua.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23121110'/%3E%3Cpath d='M4 25 13 11h6l9 14Z' fill='%23E8623A'/%3E%3Ccircle cx='16' cy='7' r='2.4' fill='%23FFE2B0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Sticky ridgeline (Amsterdam left, Managua right), then stops newest first; each stop is a title plus an editorial mosaic of large photos with room for short notes. */
+:root{
+  --basalt:#121110; --ash:#1E1C1A; --pumice:#EDE8E0; --grey:#9A938A; --grey-2:#6B655E; --hair:rgba(237,232,224,.12);
+  --ember:#E8623A; --moss:#7E9466;
+  --f-title:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-text:"Inter",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --gap:8px; --max:1560px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--basalt);color:var(--pumice);font:400 16px/1.5 var(--f-text);-webkit-font-smoothing:antialiased;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px;position:relative}
+.sky{position:absolute;left:0;right:0;top:0;height:640px;z-index:0;pointer-events:none;background:linear-gradient(#0a0f24,#17193d 45%,#3b1e3d 72%,#121110)}
+.sky canvas{display:block;width:100%;height:100%}
+.page{position:relative;z-index:1}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--basalt)}
+.page{max-width:var(--max);margin:0 auto}
+
+/* ---------- header with ridgeline ---------- */
+.topbar{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-block:18px 0}
+.topbar b{font-weight:600;font-size:15px;letter-spacing:-.01em}
+.topbar span{font-size:13px;color:var(--grey)}
+.sentinel{height:1px}
+.rbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:12px max(16px,env(safe-area-inset-left,0px)) 0;background:transparent;border-bottom:1px solid transparent;transition:border-color .2s,background-color .2s}
+.rbar.stuck{border-bottom-color:var(--hair);background:rgba(18,17,16,.9);-webkit-backdrop-filter:saturate(160%) blur(20px);backdrop-filter:saturate(160%) blur(20px)}
+.rbar-in{max-width:var(--max);margin:0 auto}
+.ridge{position:relative;height:156px}
+.ridge svg .wp{transition:opacity .2s}
+.rbar.stuck .wp,.rbar.stuck .here-label{display:none}
+.rbar.stuck .ridge{height:56px}
+.rbar.stuck .ridge-row{display:none}
+.rbar.stuck .ridge .pt i{width:6px;height:6px;margin:-3px 0 0 -3px}
+.ridge svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ridge .pt{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border:0;padding:0;background:none;cursor:pointer;border-radius:50%}
+.ridge .pt i{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:var(--pumice);transition:transform .2s}
+.ridge .pt.future{cursor:default}
+.ridge .pt.now i{opacity:0}
+.ridge .pt.home:hover i{transform:scale(1.6)}
+.ridge .pt.home i{background:var(--grey)}
+.ridge .pt.future i{background:transparent;border:1px solid var(--grey-2)}
+.ridge .pt.active i{background:var(--ember);transform:scale(1.6)}
+.ridge .pt:not(.future):hover i{transform:scale(1.6)}
+.ridge .pt:focus-visible{outline:2px solid var(--pumice);outline-offset:-4px}
+.tip{position:absolute;bottom:calc(100% - 4px);transform:translateX(-50%);white-space:nowrap;pointer-events:none;background:rgba(40,38,35,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:10px;padding:6px 10px;font-size:12px;line-height:1.35;opacity:0;transition:opacity .15s;z-index:2}
+.tip b{display:block;font-weight:600;font-size:13px}
+.tip span{color:var(--grey)}
+.tip.on{opacity:1}
+.ridge-row{position:relative;height:30px;font-size:12px;color:var(--grey-2)}
+.ridge-row span{position:absolute;top:6px;white-space:nowrap}
+.ridge-row .end-l{left:0}.ridge-row .end-r{right:0;text-align:right}
+.ridge-row .ct{transform:translateX(-50%);color:var(--grey)}
+.ridge-row .tick{position:absolute;top:0;width:1px;height:8px;background:var(--hair)}
+
+/* ---------- intro ---------- */
+.intro{padding:64px 0 clamp(170px,14vw,210px);display:flex;flex-direction:column;gap:12px}
+.intro h1{margin:0;font:800 clamp(40px,7vw,96px)/.92 var(--f-title);text-transform:uppercase;letter-spacing:-.02em;text-wrap:balance;max-width:11.5ch;text-shadow:0 2px 24px rgba(10,15,36,.5)}
+.intro p{margin:0;max-width:44ch;font-size:19px;line-height:1.45;color:rgba(237,232,224,.8)}
+
+/* ---------- stops ---------- */
+.stop{padding-top:96px;scroll-margin-top:96px;display:flex;flex-direction:column;gap:28px}
+.stop-head{display:flex;flex-direction:column;gap:6px}
+.stop-head h2{margin:0;font:800 clamp(30px,4.6vw,60px)/.95 var(--f-title);text-transform:uppercase;letter-spacing:-.015em;text-wrap:balance}
+.meta{font-size:17px;color:var(--grey);letter-spacing:-.005em}
+.meta .dot{padding:0 .45em;color:var(--grey-2)}
+.day{display:flex;flex-direction:column;gap:14px}
+.day-label{font-size:14px;font-weight:500;color:var(--pumice)}
+.day-label span{color:var(--grey);font-weight:400;margin-left:.5em}
+
+.mosaic{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--gap)}
+.ph{margin:0;position:relative;overflow:hidden;background:var(--ash);border-radius:2px;cursor:zoom-in;min-height:0}
+.ph{background-size:cover;background-position:center}
+.ph picture{display:contents}
+.ph img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
+.ph img.in{opacity:1}
+.ph:focus-visible{outline:2px solid var(--pumice);outline-offset:2px}
+.full{grid-column:1/-1;aspect-ratio:16/8}
+.big{grid-column:span 8;grid-row:span 2}
+.side{grid-column:span 4;aspect-ratio:4/3}
+.half{grid-column:span 6;aspect-ratio:3/2}
+.third{grid-column:span 4;aspect-ratio:4/5}
+.wide{grid-column:span 7;aspect-ratio:3/2}
+.port{grid-column:span 5;aspect-ratio:4/5}
+.note{grid-column:span 5;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:32px clamp(8px,3vw,48px)}
+.note.n7{grid-column:span 7}
+.note.solo-note{grid-column:2/-2;padding-block:16px}
+.pp{grid-column:span 6;aspect-ratio:4/5}
+.solo{grid-column:4/10;aspect-ratio:4/5}
+.note p{margin:0;font-size:clamp(22px,2.4vw,32px);line-height:1.22;font-weight:500;letter-spacing:-.02em;text-wrap:balance}
+.note span{font-size:14px;color:var(--grey)}
+@media (max-width:760px){
+  .full{aspect-ratio:4/3}
+  .big,.side,.half,.wide,.port,.note,.note.n7,.note.solo-note,.solo{grid-column:1/-1;grid-row:auto}
+  .pp{grid-column:span 6}
+  .big{aspect-ratio:4/3}
+  .third{grid-column:span 6}
+  .third:nth-child(3n+1){grid-column:1/-1;aspect-ratio:4/3}
+  .note{padding:24px 4px}
+  .stop{padding-top:72px;scroll-margin-top:88px}
+  .ridge{height:132px}
+}
+.later{padding-top:28px;margin:0;color:var(--grey);font-size:15px}
+.later b{color:var(--pumice);font-weight:500}
+.stats{margin-top:120px;padding-top:28px;border-top:1px solid var(--hair);display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:24px}
+.stats div{display:flex;flex-direction:column;gap:2px}
+.stats b{font:800 clamp(28px,3.4vw,44px)/1 var(--f-title);font-variant-numeric:tabular-nums}
+.stats span{font-size:14px;color:var(--grey)}
+.foot{padding-top:40px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--grey-2)}
+.foot a{color:var(--grey);text-decoration:none}.foot a:hover{color:var(--pumice)}
+
+/* ---------- lightbox ---------- */
+.lb{position:fixed;inset:0;z-index:50;background:#000;display:grid;grid-template-rows:auto 1fr auto;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.lb[hidden]{display:none}
+.lb-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--grey)}
+.lb-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
+.lb-stage picture{display:contents}
+.lb-stage img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.lb-cap{display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:12px;text-align:center}
+.lb-cap b{font-weight:500;font-size:15px}
+.lb-cap span{font-size:13px;color:var(--grey)}
+.btn{background:rgba(255,255,255,.1);border:0;color:var(--pumice);width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font:400 18px/1 var(--f-text)}
+.btn:hover{background:rgba(255,255,255,.18)}
+.btn:focus-visible{outline:2px solid var(--pumice)}
+.nav{position:absolute;top:50%;transform:translateY(-50%)}
+.nav.prev{left:0}.nav.next{right:0}
+@media (hover:none){.nav{display:none}}
+.later.empty{padding-top:96px;font-size:17px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="sky" id="skyWrap" aria-hidden="true"><canvas id="sky"></canvas></div>
+<div class="page" id="top">
+  <div class="topbar"><b>Joe in Central America</b><span id="dayCount"></span></div>
+
+  <section class="intro">
+    <h1>Volcanoes, Jungle, Reef</h1>
+    <p>Seventy-three days from Guatemala to Nicaragua with a Sony A7 IV. Newest photos first. Tap a point on the ridge to jump to that place.</p>
+  </section>
+
+  <div class="sentinel" id="sentinel"></div>
+  <div class="rbar" id="rbar">
+    <div class="rbar-in">
+      <div class="ridge" id="ridge" aria-label="Route by altitude, from Amsterdam to Managua."></div>
+      <div class="ridge-row" id="ridgeRow"></div>
+    </div>
+  </div>
+
+  <main id="stops"></main>
+  <section class="stats" id="stats" aria-label="Trip so far"></section>
+  <div class="foot"><span>All photos by Joe, shot on a Sony A7 IV.</span><a href="#top" id="toTop">Back to top ↑</a></div>
+</div>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="lb-top"><span id="lbCount"></span><button class="btn" id="lbClose" type="button" aria-label="Close">✕</button></div>
+  <div class="lb-stage">
+    <picture><source id="lbSrc" type="image/avif" sizes="100vw"><img id="lbImg" alt=""></picture>
+    <button class="btn nav prev" id="lbPrev" type="button" aria-label="Previous photo">‹</button>
+    <button class="btn nav next" id="lbNext" type="button" aria-label="Next photo">›</button>
+  </div>
+  <div class="lb-cap"><b id="lbTitle"></b><span id="lbMeta"></span></div>
+</div>
+<script src="assets/app.js" defer></script>
+<script src="assets/scene.js" defer></script>
+</body>
+</html>

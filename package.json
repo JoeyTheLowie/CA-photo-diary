@@ -1,0 +1,12 @@
+{
+  "name": "ca-photo-diary",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "process": "node scripts/process.mjs"
+  },
+  "dependencies": {
+    "exifr": "7.1.3",
+    "sharp": "0.33.5"
+  }
+}

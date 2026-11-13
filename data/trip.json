@@ -1,0 +1,31 @@
+{
+ "title": "Joe in Central America",
+ "start": "2026-11-27",
+ "end": "2027-02-06",
+ "days": 73,
+ "home": {"name": "Amsterdam", "date": "2026-11-27"},
+ "finish": {"name": "Managua", "date": "2027-02-06"},
+ "stops": [
+  {"id": "antigua", "name": "Antigua & Acatenango", "country": "Guatemala", "from": "2026-11-27", "to": "2026-12-02", "alt": 3976, "peak": "Acatenango"},
+  {"id": "xela", "name": "Xela", "country": "Guatemala", "from": "2026-12-02", "to": "2026-12-08", "alt": 4220, "peak": "Tajumulco"},
+  {"id": "atitlan", "name": "Lake Atitlán", "country": "Guatemala", "from": "2026-12-08", "to": "2026-12-13", "alt": 1560},
+  {"id": "semuc", "name": "Semuc Champey", "country": "Guatemala", "from": "2026-12-13", "to": "2026-12-16", "alt": 400},
+  {"id": "tikal", "name": "Tikal & Yaxhá", "country": "Guatemala", "from": "2026-12-16", "to": "2026-12-20", "alt": 250},
+  {"id": "sanignacio", "name": "San Ignacio", "country": "Belize", "from": "2026-12-20", "to": "2026-12-23", "alt": 120},
+  {"id": "hopkins", "name": "Hopkins & Cockscomb", "country": "Belize", "from": "2026-12-23", "to": "2026-12-27", "alt": 300},
+  {"id": "caulker", "name": "Caye Caulker", "country": "Belize", "from": "2026-12-27", "to": "2027-01-01", "alt": 0},
+  {"id": "puntagorda", "name": "Punta Gorda", "country": "Belize", "from": "2027-01-01", "to": "2027-01-02", "alt": 0},
+  {"id": "livingston", "name": "Livingston & Río Dulce", "country": "Guatemala", "from": "2027-01-02", "to": "2027-01-04", "alt": 0},
+  {"id": "copan", "name": "Copán Ruinas", "country": "Honduras", "from": "2027-01-04", "to": "2027-01-07", "alt": 600},
+  {"id": "gracias", "name": "Gracias & Celaque", "country": "Honduras", "from": "2027-01-07", "to": "2027-01-10", "alt": 2849, "peak": "Cerro Las Minas"},
+  {"id": "yojoa", "name": "Lago de Yojoa", "country": "Honduras", "from": "2027-01-10", "to": "2027-01-14", "alt": 650},
+  {"id": "valle", "name": "Valle de Ángeles", "country": "Honduras", "from": "2027-01-14", "to": "2027-01-15", "alt": 1310},
+  {"id": "esteli", "name": "Estelí & Miraflor", "country": "Nicaragua", "from": "2027-01-15", "to": "2027-01-19", "alt": 1400},
+  {"id": "leon", "name": "León", "country": "Nicaragua", "from": "2027-01-19", "to": "2027-01-23", "alt": 1061, "peak": "Telica"},
+  {"id": "granada", "name": "Apoyo & Granada", "country": "Nicaragua", "from": "2027-01-23", "to": "2027-01-25", "alt": 635},
+  {"id": "sjds", "name": "San Juan del Sur", "country": "Nicaragua", "from": "2027-01-25", "to": "2027-01-27", "alt": 0},
+  {"id": "ometepe", "name": "Ometepe", "country": "Nicaragua", "from": "2027-01-27", "to": "2027-01-30", "alt": 1610, "peak": "Concepción"},
+  {"id": "riosanjuan", "name": "Río San Juan", "country": "Nicaragua", "from": "2027-01-30", "to": "2027-02-05", "alt": 30},
+  {"id": "managua", "name": "Managua", "country": "Nicaragua", "from": "2027-02-05", "to": "2027-02-06", "alt": 80}
+ ]
+}
