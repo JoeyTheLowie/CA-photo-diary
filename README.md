@@ -23,7 +23,7 @@ The post page needs a GitHub token that can write to this repository only.
 1. On GitHub: **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**.
 2. Name it `photo diary`, set the expiration to a date after the trip (for example 1 March 2027).
 3. **Repository access:** Only select repositories → `CA-photo-diary`.
-4. **Permissions → Repository permissions → Contents:** Read and write.
+4. **Permissions:** click **+ Add permissions**, choose **Contents**, and set it to **Read and write**.
 5. Generate, copy, and paste it into the post page. It is saved on that phone only.
 
 Add the post page to your home screen (Share → Add to Home Screen) so it works like an app.
