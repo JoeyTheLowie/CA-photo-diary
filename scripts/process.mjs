@@ -130,6 +130,20 @@ for (const f of (await fs.readdir(NOTES).catch(() => [])).sort()) {
   });
 }
 
+// Layouts: layouts/YYYY-MM-DD.json is the day's layout from the post page's layout builder.
+// Rows refer to photos by hash: {"rows": [{"t": "full|single|row|photo-text|quote|text", "p": [hash...], "side": "left|right", "h": "heading", "b": "text"}]}
+diary.layouts = {};
+const LAYOUTS = path.join(ROOT, 'layouts');
+for (const f of (await fs.readdir(LAYOUTS).catch(() => [])).sort()) {
+  const m = f.match(/^(\d{4}-\d\d-\d\d)\.json$/);
+  if (!m) continue;
+  try {
+    const L = JSON.parse(await fs.readFile(path.join(LAYOUTS, f), 'utf8'));
+    const rows = (L.rows || []).filter(r => r && typeof r.t === 'string');
+    if (rows.length) diary.layouts[m[1]] = {stop: stopFor(m[1]), rows};
+  } catch (e) { console.warn(`! layouts/${f}: ${e.message}`); }
+}
+
 // Remove image files that no photo points to any more.
 const keep = new Set(diary.photos.map(p => p.id));
 let removed = 0;
@@ -140,4 +154,4 @@ for (const f of await fs.readdir(IMG)) {
 }
 
 await fs.writeFile(DIARY, JSON.stringify(diary, null, 1) + '\n');
-console.log(`Done: ${added} new photo(s), ${diary.photos.length} in total, ${diary.notes.length} note(s)${removed ? `, ${removed} old file(s) removed` : ''}.`);
+console.log(`Done: ${added} new photo(s), ${diary.photos.length} in total, ${diary.notes.length} note(s), ${Object.keys(diary.layouts).length} layout(s)${removed ? `, ${removed} old file(s) removed` : ''}.`);

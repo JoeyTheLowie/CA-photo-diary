@@ -155,6 +155,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media (hover:none){.nav{display:none}}
 .later.empty{padding-top:96px;font-size:17px}
 [hidden]{display:none!important}
+/* live preview inside the post page: just the day being edited */
+html.preview .sky,html.preview .topbar,html.preview .intro,html.preview .sentinel,html.preview .rbar,html.preview .stats,html.preview .foot,html.preview .later{display:none!important}
+html.preview .stop:first-child{margin-top:0;padding-top:24px}
+html.preview .ph{cursor:default}
 </style>
 </head>
 <body>

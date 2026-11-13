@@ -1,6 +1,7 @@
 /* ===== Base camp on Acatenango: dusk sky, Fuego erupting, Joe shooting a long exposure =====
    Everything below the ground line is page colour, so the ridgeline sits on calm dark ground. */
 (function(){
+  if(/[?&]preview/.test(location.search))return;   /* the post page's live preview shows the photos only */
   const wrap=document.getElementById('skyWrap'),cv=document.getElementById('sky'),g=cv.getContext('2d');
   const sentinel=document.getElementById('sentinel'),rb=document.getElementById('rbar'),introP=document.querySelector('.intro p');
   const still=matchMedia('(prefers-reduced-motion: reduce)').matches;

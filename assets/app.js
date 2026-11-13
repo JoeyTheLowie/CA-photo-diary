@@ -14,7 +14,17 @@ const fmtRange = (a, b) => a.getMonth() === b.getMonth()
   : `${fmtShort(a)} – ${fmtShort(b)}`;
 
 const noCache = {cache: 'no-cache'};
-Promise.all([
+/* ?preview: the post page shows one day in an iframe and sends it the day's photos and layout as they change */
+const PREVIEW = /[?&]preview/.test(location.search);
+let relayout = () => {};
+addEventListener('resize', (() => { let t; return () => { clearTimeout(t); t = setTimeout(() => relayout(), 100); }; })());
+if (PREVIEW) {
+  document.documentElement.classList.add('preview');
+  fetch('data/trip.json', noCache).then(r => r.json()).then(trip => {
+    addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.diary) render(trip, e.data.diary); });
+    parent.postMessage({previewReady: true}, location.origin);
+  });
+} else Promise.all([
   fetch('data/trip.json', noCache).then(r => r.json()),
   fetch('data/diary.json', noCache).then(r => r.ok ? r.json() : {}).catch(() => ({}))
 ]).then(([trip, diary]) => render(trip, diary || {}));
@@ -28,7 +38,9 @@ function render(trip, diary) {
   const dayNo = d => Math.round((d - TRIP_START) / 864e5) + 1;
   const stopById = Object.fromEntries(STOPS.map(s => [s.id, s]));
   const photos = (diary.photos || []).filter(p => stopById[p.stop]);
-  const notes = (diary.notes || []).filter(n => stopById[n.stop]);
+  const layouts = Object.fromEntries(Object.entries(diary.layouts || {}).filter(([, L]) => stopById[L.stop]));
+  /* a day with a layout from the post page takes its texts from that layout, not from notes/ */
+  const notes = (diary.notes || []).filter(n => stopById[n.stop] && !layouts[n.date]);
 
   /* ---------- texts (editable on the post page, stored in trip.json) ---------- */
   const X = trip.texts || {};
@@ -43,9 +55,10 @@ function render(trip, diary) {
     : dn > TRIP_DAYS ? `${TRIP_DAYS} days, all done` : `Day ${dn} of ${TRIP_DAYS}`;
 
   /* ---------- stops, newest first; days newest first; photos in the order they were taken ---------- */
-  const used = new Set([...photos.map(p => p.stop), ...notes.map(n => n.stop)]);
+  const layoutDays = Object.entries(layouts).map(([date, L]) => ({date, stop: L.stop}));
+  const used = new Set([...photos.map(p => p.stop), ...notes.map(n => n.stop), ...layoutDays.map(x => x.stop)]);
   const withPhotos = STOPS.filter(s => used.has(s.id)).reverse();
-  const host = $('stops'); const ALL = [];
+  const host = $('stops'); const ALL = []; host.textContent = '';
   const GAP = 8, DAYS = []; let noteCount = 0;
   const sizeOf = p => p.size || (p.hero ? 'big' : 'normal');
 
@@ -85,6 +98,10 @@ function render(trip, diary) {
   function figure(p, s) {
     const base = 'img/' + p.id;
     const f = document.createElement('figure');
+    if (p.src) {   /* preview: a photo that is not uploaded yet */
+      f.className = 'ph'; f.innerHTML = `<picture><source srcset=""><img class="in" src="${p.src}" width="${p.w}" height="${p.h}" alt=""></picture>`;
+      return f;
+    }
     f.className = 'ph'; f.tabIndex = 0; f.setAttribute('role', 'button');
     f.setAttribute('aria-label', p.caption || `Photo from ${s.name}`);
     if (p.lqip) f.style.backgroundImage = `url(${p.lqip})`;
@@ -101,7 +118,7 @@ function render(trip, diary) {
     const longCap = (it.caption || '').length > 120;
     if (longCap) pars.push(it.caption.trim());
     let head = it.heading || '';
-    if (!head && pars.length && pars[0].length <= 140 && (pars.length > 1 || longCap || pars[0].length <= 90)) head = pars.shift();
+    if (!head && !it.exact && pars.length && pars[0].length <= 140 && (pars.length > 1 || longCap || pars[0].length <= 90)) head = pars.shift();
     const el = document.createElement('div'); el.className = 'note';
     const hd = document.createElement('div'); hd.className = 'h';
     if (head) { const q = document.createElement('p'); q.className = 'q'; q.textContent = head; hd.appendChild(q); }
@@ -131,9 +148,49 @@ function render(trip, diary) {
     const f = d.figs.get(p); f.style.flex = ''; f.classList.remove('fit'); f.classList.add('header');
     f.querySelector('source').sizes = '100vw'; wrap.appendChild(f); return wrap;
   }
+  /* A day laid out by hand on the post page: rows in the order Joe chose. Photos he didn't place follow, laid out automatically. */
+  function layoutCustom(d, Wc) {
+    const wide = Wc >= 760, phone = Wc < 600, byHash = new Map(d.list.map(p => [p.hash, p])), placed = new Set();
+    const maxH = phone ? innerHeight * .8 : Math.min(innerHeight * .85, Wc * .9);
+    const ar = p => p.w / p.h, add = el => d.el.appendChild(el);
+    const get = (hs, n = 9) => (hs || []).map(h => byHash.get(h)).filter(p => p && !placed.has(p)).slice(0, n).map(p => (placed.add(p), p));
+    const justified = ps => (Wc - GAP * (ps.length - 1)) / ps.reduce((a, p) => a + ar(p), 0);
+    const sideBySide = ps => {
+      /* phones: four photos become two rows of two */
+      const chunks = phone && ps.length === 4 ? [ps.slice(0, 2), ps.slice(2)] : [ps];
+      chunks.forEach(c => add(photoRow(d, c, Math.min(justified(c), maxH), Wc)));
+    };
+    const textOf = r => noteEl({heading: (r.h || '').trim(), text: (r.b || '').trim(), exact: true});
+    d.layout.forEach(r => {
+      if (r.t === 'full') { const [p] = get(r.p, 1); if (p) add(headerEl(d, p)); }
+      else if (r.t === 'single') { const [p] = get(r.p, 1); if (p) add(photoRow(d, [p], Math.min(Wc / ar(p), maxH), Wc)); }
+      else if (r.t === 'row') { const ps = get(r.p, 4); if (ps.length) sideBySide(ps); }
+      else if (r.t === 'photo-text') {
+        const ps = get(r.p, 3), note = textOf(r), right = r.side === 'right';
+        if (!note._len) { if (ps.length) sideBySide(ps); return; }
+        if (!ps.length) { note.className = standalone(note); add(note); return; }
+        if (wide) {
+          const sum = ps.reduce((a, p) => a + ar(p), 0);
+          note.className = 'note tile' + (right ? ' right' : '');
+          const tile = {tile: true, el: note, w: Math.min(note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, Math.max(.6, sum * .75)), h: 1};
+          const r2 = right ? [...ps, tile] : [tile, ...ps];
+          add(photoRow(d, r2, Math.min((Wc - GAP * (r2.length - 1)) / (sum + tile.w), maxH), Wc));
+        } else {
+          note.className = 'note';   /* phones: text above the photos when it sits left, below when it sits right */
+          if (!right) add(note); sideBySide(ps); if (right) add(note);
+        }
+      }
+      else if (r.t === 'quote') { const note = textOf({h: r.h || r.b}); if (note._len) { note.className = 'note pull'; add(note); } }
+      else if (r.t === 'text') { const note = textOf(r); if (note._len) { note.className = standalone(note); add(note); } }
+    });
+    const rest = d.list.filter(p => !placed.has(p));
+    rest.filter(p => sizeOf(p) === 'header').forEach(p => add(headerEl(d, p)));
+    rowsFor(rest.filter(p => sizeOf(p) !== 'header'), Wc).forEach(({r, h}) => add(photoRow(d, r, h, Wc)));
+  }
   function layoutDay(d) {
     const Wc = d.el.clientWidth; if (!Wc || Wc === d.w) return; d.w = Wc;
     d.el.textContent = '';
+    if (d.layout) return layoutCustom(d, Wc);
     const wide = Wc >= 760;
     const headers = d.list.filter(p => sizeOf(p) === 'header'), rest = d.list.filter(p => sizeOf(p) !== 'header');
     if (headers[0]) d.el.appendChild(headerEl(d, headers[0]));
@@ -180,7 +237,7 @@ function render(trip, diary) {
     const sec = document.createElement('section'); sec.className = 'stop'; sec.id = s.id;
     const altTxt = s.peak ? `${s.peak}, ${nf.format(s.alt)} m` : `${nf.format(s.alt)} m`;
     sec.innerHTML = `<div class="stop-head"><h2>${esc(s.name)}</h2><div class="meta">${esc(s.country)}<span class="dot">·</span>${fmtRange(D(s.from), D(s.to))}<span class="dot">·</span>${esc(altTxt)}</div></div>`;
-    const dates = [...new Set([...photos, ...notes].filter(x => x.stop === s.id).map(x => x.date))].sort().reverse();
+    const dates = [...new Set([...photos, ...notes, ...layoutDays].filter(x => x.stop === s.id).map(x => x.date))].sort().reverse();
     dates.forEach(date => {
       const d = D(date), day = document.createElement('div'); day.className = 'day';
       const n = dayNo(d);
@@ -188,7 +245,8 @@ function render(trip, diary) {
       const list = photos.filter(p => p.stop === s.id && p.date === date).sort((a, b) => (a.batch && a.batch === b.batch ? a.seq - b.seq : 0) || (a.time || '').localeCompare(b.time || '') || a.id.localeCompare(b.id));
       const dayNotes = notes.filter(x => x.stop === s.id && x.date === date).sort((a, b) => (a.i || 0) - (b.i || 0));
       const m = document.createElement('div'); m.className = 'rows';
-      DAYS.push({el: m, list, figs: new Map(list.map(p => [p, figure(p, s)])), notes: dayNotes.map(noteEl), side0: (noteCount += dayNotes.length) - dayNotes.length, w: 0});
+      const L = layouts[date] && layouts[date].stop === s.id ? layouts[date].rows : null;
+      DAYS.push({el: m, list, figs: new Map(list.map(p => [p, figure(p, s)])), notes: dayNotes.map(noteEl), side0: (noteCount += dayNotes.length) - dayNotes.length, layout: L, w: 0});
       day.appendChild(m); sec.appendChild(day);
     });
     host.appendChild(sec);
@@ -204,11 +262,11 @@ function render(trip, diary) {
     host.prepend(p);
   }
   const layoutAll = () => DAYS.forEach(layoutDay);
-  layoutAll();
-  let lt; addEventListener('resize', () => { clearTimeout(lt); lt = setTimeout(layoutAll, 100); });
+  layoutAll(); relayout = layoutAll;
   document.fonts && document.fonts.ready.then(layoutAll);
   /* fade photos in over their blurred placeholder */
   host.querySelectorAll('.ph img').forEach(im => { if (im.complete && im.naturalWidth) im.classList.add('in'); else im.addEventListener('load', () => im.classList.add('in'), {once: true}); });
+  if (PREVIEW) return;
 
   /* ---------- ridgeline: Amsterdam (left) to Managua (right), height = altitude ---------- */
   const ridge = $('ridge');

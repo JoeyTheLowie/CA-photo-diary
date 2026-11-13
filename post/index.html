@@ -64,6 +64,77 @@ details[open] summary{margin-bottom:12px}
 .grip{align-self:center;color:var(--grey-2);font-size:20px;cursor:grab;touch-action:none;user-select:none;text-align:center;padding:16px 0}
 .photo.lift{outline:1.5px solid var(--ember);opacity:.92}
 body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
+/* ---------- layout builder ---------- */
+.lhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lhead label{flex-direction:row;align-items:center;gap:8px}
+.lhead label{flex:0 1 190px}
+.tray{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tray:empty{display:none}
+.tray .t{flex:0 0 auto;height:52px;border-radius:6px;background:var(--ash-2) center/cover;position:relative}
+.tray .t.used{opacity:.35}
+.tray .t.used::after{content:"✓";position:absolute;right:3px;bottom:1px;font-size:12px;color:var(--pumice)}
+.trayinfo{font-size:13px;color:var(--grey);margin:-4px 0 0}
+.lrows{display:flex;flex-direction:column;gap:10px}
+.lrow{background:var(--ash-2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.lrow .top{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--grey)}
+.lrow .top b{font-weight:500;color:var(--pumice);margin-right:auto}
+.ib{background:none;border:0;color:var(--grey);font:500 15px/1 var(--f-text);width:34px;height:30px;border-radius:8px;cursor:pointer}
+.ib:hover{background:#3a3733;color:var(--pumice)}.ib:disabled{opacity:.3;cursor:default;background:none}
+.pv{display:flex;gap:4px;height:96px}
+.pv.full{height:150px}.pv.single{height:120px;justify-content:center}
+.sl{position:relative;border-radius:6px;background:#3a3733 center/cover no-repeat;border:0;padding:0;cursor:pointer;min-width:0;color:var(--grey);font:500 22px/1 var(--f-text)}
+.sl.empty{background:transparent;border:1.5px dashed var(--grey-2)}
+.sl.wait{background:#3a3733;font-size:11px;padding:4px}
+.sl:focus-visible{outline:2px solid var(--ember)}
+.pv.full .sl{flex:1}
+.tx{flex:1.1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 6px;overflow:hidden}
+.tx b{font-size:13px;line-height:1.2;color:var(--pumice);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tx i{display:block;height:4px;border-radius:2px;background:var(--grey-2);opacity:.6}
+.tx i:nth-child(3){width:85%}.tx i:nth-child(4){width:60%}
+.pv.quote,.pv.text{height:auto;min-height:56px}
+.pv.quote .tx{align-items:center;text-align:center}
+.pv.quote .tx b{font-size:16px}
+.pv.text .tx{flex-direction:row;align-items:flex-start;gap:12px;padding:6px}
+.pv.text .tx b{flex:5 1 0}.pv.text .tx span{flex:7 1 0;display:flex;flex-direction:column;gap:5px;padding-top:4px}
+.lrow .acts{display:flex;gap:6px;flex-wrap:wrap}
+.lrow .acts:empty{display:none}
+.lrow input,.lrow textarea{background:var(--ash);padding:9px 10px;font-size:15px}
+.lrow textarea{min-height:72px}
+.palette{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pal{background:var(--ash-2);border:1px solid transparent;border-radius:10px;padding:8px 6px 9px;color:var(--pumice);font:500 12px/1.2 var(--f-text);display:flex;flex-direction:column;gap:7px;align-items:stretch;cursor:pointer;text-align:center}
+.pal:hover{border-color:var(--grey-2)}
+.ico{display:flex;gap:3px;height:34px}
+.ico s{flex:1;background:#5a554f;border-radius:3px}
+.ico s.t{background:none;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.ico s.t::before,.ico s.t::after{content:"";height:3px;border-radius:2px;background:#8d867d}
+.ico s.t::after{width:70%}
+.ico s.q{background:none;display:flex;align-items:center;justify-content:center}
+.ico s.q::before{content:"";width:70%;height:6px;border-radius:3px;background:#cfc8bd}
+.ico s.h{background:none;display:flex;align-items:center}
+.ico s.h::before{content:"";width:85%;height:6px;border-radius:3px;background:#cfc8bd}
+.ico.sm s:not(.t){flex:0 0 46%;margin:0 auto}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet-in{background:var(--ash);width:100%;max-width:640px;max-height:80vh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.sheet-h{display:flex;align-items:center}
+.sheet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.sheet-grid button{aspect-ratio:1;border:0;border-radius:8px;background:var(--ash-2) center/cover;cursor:pointer;position:relative;padding:0}
+.sheet-grid button.used{opacity:.45}
+.sheet-grid button.used::after{content:"placed";position:absolute;left:4px;bottom:4px;font:500 11px/1 var(--f-text);color:var(--pumice);background:rgba(0,0,0,.6);padding:3px 5px;border-radius:4px}
+.sheet-grid button.cur{outline:2px solid var(--ember)}
+.sheet-act{display:flex;gap:8px;flex-wrap:wrap}
+/* ---------- live preview ---------- */
+.pvcard .seg{flex:0 0 auto;min-width:170px}
+.pvbox{position:relative;overflow:hidden;border-radius:10px;background:var(--basalt);border:1px solid var(--hair)}
+.pvbox iframe{position:absolute;top:0;left:0;border:0;transform-origin:0 0;background:var(--basalt)}
+.pvempty{position:absolute;inset:0;margin:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:14px;color:var(--grey);pointer-events:none}
+@media (min-width:1100px){
+  .wrap{max-width:600px;margin:0 0 0 max(16px,calc(50vw - 640px))}
+  .bar .in{max-width:600px;margin:0 0 0 max(0px,calc(50vw - 656px))}
+  #previewCard{position:fixed;z-index:4;top:calc(16px + env(safe-area-inset-top,0px));bottom:16px;left:calc(max(16px,50vw - 640px) + 624px);right:max(16px,calc(50vw - 640px))}
+  #previewCard .pvbox{height:auto;flex:1}
+}
+.barrow{display:flex;gap:8px}.barrow #post{flex:1}
+@media (min-width:1100px){#toPv{display:none}}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -86,13 +157,20 @@ body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
 
   <section class="photos" id="photos" aria-live="polite"></section>
 
-  <section class="card">
-    <h2 style="margin:0">Notes for the day (optional)</h2>
-    <label>Day<input id="noteDate" type="date"></label>
-    <div id="noteList" class="notes"></div>
-    <button class="btn small" id="addNote" type="button">+ Add another note</button>
-    <p class="hint">Each note sits next to the day's photos, alternating left and right. A heading without text becomes a big centred quote.</p>
+  <section class="card" id="layoutCard">
+    <div class="lhead"><h2 style="margin:0">Layout</h2><label>Day<input id="noteDate" type="date"></label></div>
+    <p class="hint">Build the day row by row, top to bottom. Tap a photo spot to choose the photo. Photos you don't place follow your rows, arranged automatically. Leave it empty and the site arranges the whole day.</p>
+    <div class="tray" id="tray"></div>
+    <p class="trayinfo" id="trayInfo"></p>
+    <div class="lrows" id="rows"></div>
+    <div class="palette" id="palette" hidden></div>
+    <button class="btn small" id="addRow" type="button" style="align-self:flex-start">+ Add row</button>
     <p class="hint" id="noteHint"></p>
+  </section>
+
+  <section class="card pvcard" id="previewCard">
+    <div class="lhead"><h2 style="margin:0">Preview</h2><div class="seg" id="pvMode" role="radiogroup" aria-label="Preview size"><button type="button" data-m="phone" class="on">Phone</button><button type="button" data-m="desktop">Desktop</button></div></div>
+    <div class="pvbox" id="pvBox"><iframe id="pvFrame" title="Preview of the day" src="../?preview" tabindex="-1"></iframe><p class="pvempty" id="pvEmpty">Add photos or rows and the day appears here, exactly as on the site.</p></div>
   </section>
 
   <details class="card" id="textsCard">
@@ -116,9 +194,15 @@ body.dropping .pick{border-color:var(--ember);background:rgba(232,98,58,.08)}
   </details>
 </div>
 
+<div class="sheet" id="sheet" hidden><div class="sheet-in" role="dialog" aria-label="Choose a photo">
+  <div class="sheet-h"><b>Choose a photo</b><button class="x" id="sheetClose" type="button" aria-label="Close">×</button></div>
+  <div class="sheet-grid" id="sheetGrid"></div>
+  <div class="sheet-act" id="sheetAct"></div>
+</div></div>
+
 <div class="bar"><div class="in">
   <div class="status" id="status"></div>
-  <button class="btn primary" id="post" type="button" disabled>Post</button>
+  <div class="barrow"><button class="btn" id="toPv" type="button">Preview</button><button class="btn primary" id="post" type="button" disabled>Post</button></div>
 </div></div>
 
 <script>
@@ -130,14 +214,15 @@ const defaultRepo=(()=>{const h=location.hostname;if(h.endsWith('.github.io')){c
 let repo=store.get('diary.repo')||defaultRepo, token=store.get('diary.token');
 const MAX=2048;
 const items=[];
-let noteTouched=false,loadedNote=null,loadedText='';
+let noteTouched=false;
 
 function setStatus(t,cls=''){const s=$('status');s.textContent=t;s.className='status '+cls}
 function refresh(){
   $('setup').hidden=!!token;$('repo').value=repo;$('actionsLink').href=`https://github.com/${repo}/actions`;
-  const ns=serialize(),nd=$('noteDate').value;const hasNote=loadedNote===nd?loadedText!==ns:ns.length>0;
-  $('post').disabled=!token||(!items.length&&!hasNote);
-  $('post').textContent=items.length?`Post ${items.length} photo${items.length>1?'s':''}${hasNote?' and notes':''}`:hasNote?'Post notes':'Post';
+  const hasLayout=typeof layoutJSON==='function'&&loadedDay===day()&&layoutJSON()!==loadedJSON;
+  $('post').disabled=!token||(!items.length&&!hasLayout);
+  schedulePreview();
+  $('post').textContent=items.length?`Post ${items.length} photo${items.length>1?'s':''}${hasLayout?' and layout':''}`:hasLayout?'Post layout':'Post';
 }
 $('saveToken').onclick=()=>{const v=$('token').value.trim();if(!v)return;token=v;store.set('diary.token',v);$('token').value='';refresh();loadNote()};
 $('saveRepo').onclick=()=>{const v=$('repo').value.trim().replace(/^https:\/\/github.com\//,'').replace(/\/$/,'');if(/^[\w.-]+\/[\w.-]+$/.test(v)){repo=v;store.set('diary.repo',v);setStatus('Repository saved.','ok')}else setStatus('Use the form owner/name.','err');refresh()};
@@ -177,12 +262,11 @@ async function addFiles(files){
   for(const file of files){
     const it={file,caption:'',size:'normal'};items.push(it);
     const el=document.createElement('div');el.className='photo';it.el=el;
-    el.innerHTML=`<div class="grip" aria-label="Drag to reorder" title="Drag to reorder">⠿</div><img alt=""><div class="f"><input class="cap" type="text" placeholder="Caption (optional)"><div class="row"><input class="when" type="datetime-local" aria-label="Taken at"></div><div class="seg" role="radiogroup" aria-label="How big"><button type="button" data-s="normal" class="on">Normal</button><button type="button" data-s="big">Big</button><button type="button" data-s="header">Header</button></div><div class="row"><span class="meta">Reading…</span><button class="x" type="button" aria-label="Remove">×</button></div></div>`;
+    el.innerHTML=`<div class="grip" aria-label="Drag to reorder" title="Drag to reorder">⠿</div><img alt=""><div class="f"><input class="cap" type="text" placeholder="Caption (optional)"><div class="row"><input class="when" type="datetime-local" aria-label="Taken at"></div><div class="row"><span class="meta">Reading…</span><button class="x" type="button" aria-label="Remove">×</button></div></div>`;
     $('photos').appendChild(el);
     el.querySelector('.cap').oninput=ev=>it.caption=ev.target.value;
-    el.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{it.size=b.dataset.s;el.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b))});
-    el.querySelector('.when').onchange=ev=>{it.taken=ev.target.value;syncNoteDate()};
-    el.querySelector('.x').onclick=()=>{items.splice(items.indexOf(it),1);el.remove();refresh()};
+    el.querySelector('.when').onchange=ev=>{it.taken=ev.target.value;syncNoteDate();drawLayout()};
+    el.querySelector('.x').onclick=()=>{items.splice(items.indexOf(it),1);el.remove();drawLayout();refresh()};
     grip(el.querySelector('.grip'),el);
     refresh();
     try{
@@ -190,9 +274,13 @@ async function addFiles(files){
       el.querySelector('img').src=u;it.exif=x.exif||'';
       it.taken=x.taken||localISO(new Date(file.lastModified||Date.now()));
       el.querySelector('.when').value=it.taken;
-      it.blobP=shrink(im);
+      it.blobP=shrink(im);it.ar=im.naturalWidth/im.naturalHeight;it.w=im.naturalWidth;it.h=im.naturalHeight;
+      it.thumb=URL.createObjectURL(await it.blobP);   /* the 2048 px copy: light enough for the previews */
+      /* the site knows a photo by the first 8 hex digits of the SHA-1 of the uploaded file, so the layout can point at it before it is processed */
+      const buf=await (await it.blobP).arrayBuffer();
+      it.hash=[...new Uint8Array(await crypto.subtle.digest('SHA-1',buf))].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,8);
       el.querySelector('.meta').textContent=[x.taken?'':'No date in photo, check it',it.exif].filter(Boolean).join(' · ')||'Ready';
-      syncNoteDate();
+      syncNoteDate();drawLayout();
     }catch(err){el.querySelector('.meta').textContent=err.message;it.bad=true}
   }
 }
@@ -208,7 +296,7 @@ function grip(h,el){
   const moveTo=y=>{const sib=[...list.children].filter(x=>x!==el);
     const after=sib.find(x=>{const r=x.getBoundingClientRect();return y<r.top+r.height/2});
     if(after!==el.nextElementSibling)list.insertBefore(el,after||null)};
-  const done=()=>{el.classList.remove('lift');const order=[...list.children];items.sort((a,b)=>order.indexOf(a.el)-order.indexOf(b.el))};
+  const done=()=>{el.classList.remove('lift');const order=[...list.children];items.sort((a,b)=>order.indexOf(a.el)-order.indexOf(b.el));drawLayout()};
   /* mouse */
   h.addEventListener('mousedown',e=>{e.preventDefault();el.classList.add('lift');
     const mv=ev=>moveTo(ev.clientY),up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);done()};
@@ -219,38 +307,160 @@ function grip(h,el){
     addEventListener('touchmove',mv,{passive:false});addEventListener('touchend',up);addEventListener('touchcancel',up)},{passive:false});
 }
 
-/* ---------- notes: one file per day, blocks separated by a line with --- ---------- */
-function addBlock(h='',t=''){
-  const el=document.createElement('div');el.className='nb';
-  el.innerHTML=`<div class="nbh"><span></span><button class="x" type="button" aria-label="Remove note">×</button></div><input class="nh" type="text" placeholder="Heading or quote (short, shown big and bold)"><textarea class="nt" placeholder="Text (optional). Leave an empty line between paragraphs."></textarea>`;
-  el.querySelector('.nh').value=h;el.querySelector('.nt').value=t;
-  el.querySelectorAll('textarea,input').forEach(i=>i.oninput=refresh);
-  el.querySelector('.x').onclick=()=>{el.remove();if(!$('noteList').children.length)addBlock();number();refresh()};
-  $('noteList').appendChild(el);number();
+/* ---------- layout builder: a day is a list of rows, saved as layouts/<day>.json ---------- */
+/* Row types. p = photo spots (min..max), text = has a heading and text, quote = a single bold line. */
+const TYPES={
+  full:{name:'Full width',min:1,max:1},
+  single:{name:'Single photo',min:1,max:1},
+  row:{name:'Side by side',min:2,max:4},
+  'photo-text':{name:'Photos and text',min:1,max:3,text:true},
+  quote:{name:'Quote',min:0,max:0,quote:true},
+  text:{name:'Text',min:0,max:0,text:true}
+};
+/* The palette: what Joe taps to add a row. Icons are drawn with small boxes: s = photo, s.t = text lines, s.q = quote, s.h = heading. */
+const PALETTE=[
+  {label:'Full width',row:{t:'full',p:[null]},ico:'<s></s>'},
+  {label:'Single photo',row:{t:'single',p:[null]},ico:'<s></s>',sm:1},
+  {label:'2 side by side',row:{t:'row',p:[null,null]},ico:'<s></s><s></s>'},
+  {label:'3 side by side',row:{t:'row',p:[null,null,null]},ico:'<s></s><s></s><s></s>'},
+  {label:'Photo + text',row:{t:'photo-text',p:[null],side:'right',h:'',b:''},ico:'<s style="flex:1.4"></s><s class="t"></s>'},
+  {label:'Text + photo',row:{t:'photo-text',p:[null],side:'left',h:'',b:''},ico:'<s class="t"></s><s style="flex:1.4"></s>'},
+  {label:'Quote',row:{t:'quote',h:''},ico:'<s class="q"></s>'},
+  {label:'Text',row:{t:'text',h:'',b:''},ico:'<s class="h"></s><s class="t"></s>'}
+];
+let rows=[],palOpen=false,diaryP=null,loadedDay=null,loadedJSON='[]',hadLayout=false,hadNotes=false,dayToken=0;
+const day=()=>$('noteDate').value;
+function getDiary(force){if(force||!diaryP)diaryP=fetch(`https://api.github.com/repos/${repo}/contents/data/diary.json`,{headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github.raw+json'},cache:'no-store'}).then(r=>r.ok?r.json():{photos:[]}).catch(()=>({photos:[]}));return diaryP}
+let siteDay=[];   /* photos already on the site for this day */
+/* every photo that can be placed on this day: the ones already on the site, then the new ones in upload order */
+function pool(){
+  const d=day(),out=[],seen=new Set();
+  for(const p of siteDay){seen.add(p.hash);out.push({key:p.hash,bg:`url(../img/${p.id}-${p.sizes[0]}.avif), url(${p.lqip})`,ar:p.w/p.h})}
+  for(const it of items)if(it.hash&&!it.bad&&(it.taken||'').slice(0,10)===d&&!seen.has(it.hash)){seen.add(it.hash);out.push({key:it.hash,bg:`url(${it.thumb})`,ar:it.ar,isNew:true})}
+  return out;
 }
-function number(){[...$('noteList').children].forEach((b,i,a)=>{b.querySelector('.nbh span').textContent=a.length>1?`Note ${i+1}`:'Note'})}
-function serialize(){return [...$('noteList').children].map(b=>{const h=b.querySelector('.nh').value.trim().replace(/\n/g,' '),t=b.querySelector('.nt').value.trim();return [h&&'# '+h,t].filter(Boolean).join('\n\n')}).filter(Boolean).join('\n\n---\n\n')}
-function parseFile(txt){return txt.trim().split(/\n\s*-{3,}\s*\n/).map(bl=>{
+const placedKeys=()=>new Set(rows.flatMap(r=>(r.p||[]).filter(Boolean)));
+const clean=()=>rows.map(r=>{const T=TYPES[r.t],o={t:r.t};if(T.max)o.p=r.p.filter(Boolean);if(r.t==='photo-text')o.side=r.side;if(T.text||T.quote)o.h=(r.h||'').trim();if(T.text)o.b=(r.b||'').trim();return o})
+  .filter(o=>(o.p&&o.p.length)||o.h||o.b);
+const layoutJSON=()=>JSON.stringify(clean());
+function addRowOf(tpl){
+  const r=JSON.parse(JSON.stringify(tpl));
+  if(r.p){const used=placedKeys(),free=pool().filter(x=>!used.has(x.key));r.p=r.p.map(()=>{const f=free.shift();return f?f.key:null})}   /* fill with the next unplaced photos */
+  rows.push(r);palOpen=false;drawLayout();refresh();
+}
+$('palette').innerHTML=PALETTE.map((x,i)=>`<button class="pal" type="button" data-i="${i}"><span class="ico${x.sm?' sm':''}">${x.ico}</span>${x.label}</button>`).join('');
+$('palette').onclick=e=>{const b=e.target.closest('.pal');if(b)addRowOf(PALETTE[+b.dataset.i].row)};
+$('addRow').onclick=()=>{palOpen=!palOpen||!rows.length;drawLayout()};
+function drawLayout(){
+  const P=pool(),byKey=new Map(P.map(x=>[x.key,x])),used=placedKeys();
+  $('tray').innerHTML=P.map(x=>`<span class="t${used.has(x.key)?' used':''}" style="aspect-ratio:${x.ar.toFixed(3)};background-image:${x.bg}"></span>`).join('');
+  const left=P.filter(x=>!used.has(x.key)).length,other=items.filter(it=>it.taken&&it.taken.slice(0,10)!==day()).length;
+  $('trayInfo').textContent=(P.length?`${P.length} photo${P.length>1?'s':''} on this day, ${left?`${left} not placed yet`:'all placed'}.`:'No photos on this day yet. Add photos above, or pick another day.')+(other?` ${other} new photo${other>1?'s are':' is'} from another day and will be arranged automatically.`:'');
+  $('palette').hidden=!(palOpen||!rows.length);
+  $('addRow').textContent=rows.length?'+ Add row':'+ Add first row';
+  const host=$('rows');host.textContent='';
+  rows.forEach((r,i)=>{
+    const T=TYPES[r.t],el=document.createElement('div');el.className='lrow';
+    el.innerHTML=`<div class="top"><b>${T.name}</b><button class="ib" data-a="up" aria-label="Move up"${i?'':' disabled'}>↑</button><button class="ib" data-a="down" aria-label="Move down"${i<rows.length-1?'':' disabled'}>↓</button><button class="ib" data-a="del" aria-label="Remove row">×</button></div><div class="pv ${r.t}"></div><div class="acts"></div>`;
+    const pv=el.querySelector('.pv'),acts=el.querySelector('.acts');
+    const textBox=()=>{const tx=document.createElement('div');tx.className='tx';
+      if(r.t==='text')tx.innerHTML=`<b></b><span><i></i><i></i><i></i></span>`;else tx.innerHTML=`<b></b>${T.quote?'':'<i></i><i></i><i></i>'}`;
+      tx.querySelector('b').textContent=r.h||(T.quote?'Your quote':'Heading');if(!r.h)tx.querySelector('b').style.opacity=.45;return tx};
+    (r.p||[]).forEach((k,j)=>{
+      const x=k&&byKey.get(k),b=document.createElement('button');b.type='button';b.className='sl'+(k?x?'':' wait':' empty');
+      if(x){b.style.backgroundImage=x.bg;b.style.flex=r.t==='full'?'1':`${x.ar.toFixed(3)} 1 0`;if(r.t==='single')b.style.aspectRatio=x.ar.toFixed(3)}
+      else{b.style.flex=r.t==='single'?'0 0 40%':'1 1 0';b.textContent=k?'Still processing':'+'}
+      b.setAttribute('aria-label',k?'Change photo':'Choose photo');
+      b.onclick=()=>openSheet(r,j);pv.appendChild(b);
+    });
+    if(r.t==='photo-text'){const tx=textBox();if(r.side==='left')pv.prepend(tx);else pv.appendChild(tx)}
+    if(T.quote||r.t==='text')pv.appendChild(textBox());
+    if(T.max>T.min&&r.p.length<T.max)acts.insertAdjacentHTML('beforeend',`<button class="btn small" data-a="more" type="button">+ Photo spot</button>`);
+    if(r.t==='photo-text')acts.insertAdjacentHTML('beforeend',`<button class="btn small" data-a="flip" type="button">Text ${r.side==='left'?'right':'left'}</button>`);
+    if(T.text||T.quote){
+      const h=document.createElement('input');h.type='text';h.placeholder=T.quote?'Quote (short, shown big and bold)':'Heading (optional, shown bold)';h.value=r.h||'';
+      h.oninput=()=>{r.h=h.value;const b=pv.querySelector('.tx b');b.textContent=r.h||(T.quote?'Your quote':'Heading');b.style.opacity=r.h?1:.45;refresh()};el.appendChild(h);
+      if(T.text){const ta=document.createElement('textarea');ta.placeholder='Text (optional). Leave an empty line between paragraphs.';ta.value=r.b||'';ta.oninput=()=>{r.b=ta.value;refresh()};el.appendChild(ta)}
+    }
+    el.querySelector('.top').onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
+      if(a==='up'&&i){[rows[i-1],rows[i]]=[rows[i],rows[i-1]]}
+      if(a==='down'&&i<rows.length-1){[rows[i+1],rows[i]]=[rows[i],rows[i+1]]}
+      if(a==='del')rows.splice(i,1);
+      drawLayout();refresh()};
+    acts.onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
+      if(a==='more'){const used=placedKeys(),f=pool().find(x=>!used.has(x.key));r.p.push(f?f.key:null)}
+      if(a==='flip')r.side=r.side==='left'?'right':'left';
+      drawLayout();refresh()};
+    host.appendChild(el);
+  });
+}
+/* choosing a photo for a spot; a photo that is placed elsewhere moves here */
+function openSheet(r,j){
+  const P=pool(),used=placedKeys(),T=TYPES[r.t];
+  $('sheetGrid').innerHTML=P.length?P.map(x=>`<button type="button" data-k="${x.key}" class="${r.p[j]===x.key?'cur':used.has(x.key)?'used':''}" style="background-image:${x.bg}" aria-label="Photo"></button>`).join(''):'<p class="hint">No photos on this day yet.</p>';
+  $('sheetAct').innerHTML=(r.p[j]?'<button class="btn small" type="button" data-a="clear">Empty this spot</button>':'')+(r.p.length>T.min?'<button class="btn small" type="button" data-a="drop">Remove this spot</button>':'');
+  $('sheet').hidden=false;
+  $('sheetGrid').onclick=e=>{const b=e.target.closest('button[data-k]');if(!b)return;const k=b.dataset.k;
+    rows.forEach(o=>{if(o.p)o.p=o.p.map(v=>v===k?null:v)});r.p[j]=k;closeSheet()};
+  $('sheetAct').onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(a==='clear')r.p[j]=null;if(a==='drop')r.p.splice(j,1);if(a)closeSheet()};
+}
+function closeSheet(){$('sheet').hidden=true;drawLayout();refresh()}
+$('sheetClose').onclick=()=>{$('sheet').hidden=true};
+$('sheet').onclick=e=>{if(e.target===$('sheet'))$('sheet').hidden=true};
+addEventListener('keydown',e=>{if(e.key==='Escape')$('sheet').hidden=true});
+
+/* notes written before the builder existed (notes/<day>.md) open as text rows */
+function parseNotes(txt){return txt.trim().split(/\n\s*-{3,}\s*\n/).map(bl=>{
   const lines=bl.trim().split('\n');let h='',cap='';
   if(/^#\s+/.test(lines[0]))h=lines.shift().replace(/^#\s+/,'').trim();
   if(lines.length>1&&/^\s*(—|--|–)\s/.test(lines.at(-1)))cap=lines.pop().replace(/^\s*(—|--|–)\s*/,'').trim();
-  let pars=lines.join('\n').trim().split(/\n\s*\n/).filter(Boolean);
-  if(!h&&pars.length&&pars[0].length<=140&&(pars.length>1||cap)){h=pars.shift().replace(/\n/g,' ')}
-  if(cap)pars.push(cap);
-  return[h,pars.join('\n\n')]}).filter(b=>b[0]||b[1])}
-function setBlocks(arr){$('noteList').textContent='';(arr.length?arr:[['','']]).forEach(([h,t])=>addBlock(h,t))}
-$('addNote').onclick=()=>{addBlock();$('noteList').lastElementChild.querySelector('.nt').focus()};
-setBlocks([]);
-function syncNoteDate(){if(noteTouched)return;const d=items.map(i=>i.taken).filter(Boolean).sort().pop();if(d&&$('noteDate').value!==d.slice(0,10)){$('noteDate').value=d.slice(0,10);loadNote()}}
+  const pars=lines.join('\n').trim().split(/\n\s*\n/).filter(Boolean);if(cap)pars.push(cap);const b=pars.join('\n\n');
+  return b?{t:'text',h,b}:{t:'quote',h}}).filter(r=>r.h||r.b)}
+function syncNoteDate(){if(noteTouched)return;const d=items.map(i=>i.taken).filter(Boolean).sort().pop();if(d&&day()!==d.slice(0,10)){$('noteDate').value=d.slice(0,10);loadNote()}}
 $('noteDate').value=localISO(new Date()).slice(0,10);
 $('noteDate').onchange=()=>{noteTouched=true;loadNote()};
 async function loadNote(){
-  const d=$('noteDate').value;loadedNote=null;loadedText='';$('noteHint').textContent='';if(!token||!d)return;
-  try{const f=await gh(`/contents/notes/${d}.md`);if($('noteDate').value!==d)return;loadedNote=d;
-    setBlocks(parseFile(fromb64(f.content)));loadedText=serialize();
-    $('noteHint').textContent='This day already has notes; they are loaded above. Your changes replace them. Remove them all and post to delete them.';refresh()}
-  catch(e){if(e.status!==404)$('noteHint').textContent='Could not check for existing notes: '+e.message}
+  const d=day(),my=++dayToken;loadedDay=null;rows=[];palOpen=false;hadLayout=hadNotes=false;siteDay=[];$('noteHint').textContent='';drawLayout();refresh();if(!token||!d)return;
+  try{
+    const [diary,lay,notes]=await Promise.all([getDiary(),gh(`/contents/layouts/${d}.json`).catch(e=>{if(e.status===404)return null;throw e}),gh(`/contents/notes/${d}.md`).catch(e=>{if(e.status===404)return null;throw e})]);
+    if(my!==dayToken)return;
+    siteDay=(diary.photos||[]).filter(p=>p.date===d).sort((a,b)=>(a.batch&&a.batch===b.batch?a.seq-b.seq:0)||(a.time||'').localeCompare(b.time||''));
+    hadLayout=!!lay;hadNotes=!!notes;
+    if(lay){rows=(JSON.parse(fromb64(lay.content)).rows||[]).filter(r=>TYPES[r.t]).map(r=>({...r,p:TYPES[r.t].max?(r.p||[]).slice():undefined,side:r.side||'right'}))}
+    else if(notes)rows=parseNotes(fromb64(notes.content));
+    loadedDay=d;loadedJSON=layoutJSON();
+    $('noteHint').textContent=lay?'This day already has a layout; it is loaded above. Your changes replace it.':notes?'This day already has notes; they are loaded above as text rows. Move them where you want them.':'';
+    drawLayout();refresh();
+  }catch(e){if(my===dayToken)$('noteHint').textContent='Could not load this day: '+e.message}
 }
+
+/* ---------- live preview: the real site in an iframe, showing only this day ---------- */
+let trip=null,pvReady=false,pvT=0,pvMode=store.get('diary.pvMode')||'phone';
+fetch('../data/trip.json',{cache:'no-cache'}).then(r=>r.json()).then(t=>{trip=t;schedulePreview()}).catch(()=>{});
+function stopFor(date){const S=trip.stops;const hit=S.find(s=>s.from<=date&&date<s.to);if(hit)return hit.id;if(date<S[0].from)return S[0].id;let prev=S[0];for(const s of S)if(s.from<=date)prev=s;return prev.id}
+addEventListener('message',e=>{if(e.origin===location.origin&&e.data&&e.data.previewReady){pvReady=true;sendPreview()}});
+function schedulePreview(){clearTimeout(pvT);pvT=setTimeout(sendPreview,180)}
+function sendPreview(){
+  if(!pvReady||!trip)return;
+  const d=day(),st=stopFor(d),have=new Set(siteDay.map(p=>p.hash));
+  const fresh=items.filter(it=>it.hash&&it.thumb&&!it.bad&&(it.taken||'').slice(0,10)===d&&!have.has(it.hash));
+  const photos=[...siteDay.map(p=>({...p,stop:st})),...fresh.map((it,n)=>({id:'new-'+it.hash+n,hash:it.hash,src:it.thumb,w:it.w,h:it.h,date:d,time:(it.taken||'').slice(11,16),stop:st,size:'normal',sizes:[],caption:it.caption||'',batch:'~new',seq:n}))];
+  const L=clean();
+  $('pvEmpty').hidden=photos.length>0||L.length>0;
+  $('pvFrame').contentWindow.postMessage({diary:{photos,notes:[],layouts:L.length?{[d]:{stop:st,rows:L}}:{}}},location.origin);
+}
+/* the frame is a real screen size (iPhone or laptop), scaled down to fit, so photo heights match what visitors see */
+function sizePreview(){
+  const box=$('pvBox'),f=$('pvFrame'),[w,h]=pvMode==='phone'?[390,750]:[1280,800],fixed=matchMedia('(min-width:1100px)').matches;
+  box.style.height='';
+  const s=Math.min(1,box.clientWidth/w,fixed?box.clientHeight/h:1);
+  if(!fixed)box.style.height=Math.round(h*s)+'px';
+  f.style.width=w+'px';f.style.height=h+'px';f.style.transform=`scale(${s})`;f.style.left=Math.max(0,(box.clientWidth-w*s)/2)+'px';f.style.top='0';
+  $('pvMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===pvMode));
+}
+$('pvMode').onclick=e=>{const b=e.target.closest('button');if(!b)return;pvMode=b.dataset.m;store.set('diary.pvMode',pvMode);sizePreview()};
+addEventListener('resize',sizePreview);sizePreview();
+$('toPv').onclick=()=>$('previewCard').scrollIntoView({behavior:'smooth',block:'center'});
 
 async function commit(tree,msg){
   for(let attempt=0;;attempt++){
@@ -289,17 +499,21 @@ $('post').onclick=async()=>{
       const name=`inbox/${t}-${Math.random().toString(36).slice(2,6)}`;
       const {sha}=await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:b64(await blob.arrayBuffer()),encoding:'base64'})});
       tree.push({path:name+'.jpg',mode:'100644',type:'blob',sha});
-      tree.push({path:name+'.json',mode:'100644',type:'blob',content:JSON.stringify({caption:it.caption.trim(),size:it.size,taken:it.taken,exif:it.exif,batch,seq:n})+'\n'});
+      tree.push({path:name+'.json',mode:'100644',type:'blob',content:JSON.stringify({caption:it.caption.trim(),size:'normal',taken:it.taken,exif:it.exif,batch,seq:n})+'\n'});
     }
-    const nd=$('noteDate').value,nt=serialize();
-    const changed=!(loadedNote===nd&&loadedText===nt);
-    if(nd&&nt&&changed)tree.push({path:`notes/${nd}.md`,mode:'100644',type:'blob',content:nt+'\n'});
-    else if(nd&&!nt&&loadedNote===nd)tree.push({path:`notes/${nd}.md`,mode:'100644',type:'blob',sha:null});
+    /* the layout replaces the day's old notes file; an empty layout lets the site arrange the day again */
+    const nd=day(),L=clean(),layoutChanged=loadedDay===nd&&layoutJSON()!==loadedJSON;
+    if(layoutChanged){
+      if(L.length)tree.push({path:`layouts/${nd}.json`,mode:'100644',type:'blob',content:JSON.stringify({rows:L},null,1)+'\n'});
+      else if(hadLayout)tree.push({path:`layouts/${nd}.json`,mode:'100644',type:'blob',sha:null});
+      if(hadNotes)tree.push({path:`notes/${nd}.md`,mode:'100644',type:'blob',sha:null});
+    }
     if(!tree.length)throw new Error('Nothing to post.');
     setStatus('Saving…');
-    const msg=good.length?`Add ${good.length} photo${good.length>1?'s':''}${nt?' and notes':''}`:`Notes for ${nd}`;
+    const msg=good.length?`Add ${good.length} photo${good.length>1?'s':''}${layoutChanged?' and layout':''}`:`Layout for ${nd}`;
     await commit(tree,msg);
-    items.splice(0).forEach(i=>i.el.remove());setBlocks([]);$('noteHint').textContent='';noteTouched=false;loadedNote=null;loadedText='';
+    items.splice(0).forEach(i=>i.el.remove());noteTouched=false;getDiary(true);
+    hadLayout=L.length>0;hadNotes=false;loadedJSON=layoutJSON();drawLayout();
     setStatus('Posted. The site updates in about two minutes.','ok');
   }catch(e){
     setStatus(e.status===401?'GitHub did not accept the token. Check it in Settings.':e.status===404?'Repository not found, or the token has no access to it.':'Something went wrong: '+e.message,'err');
