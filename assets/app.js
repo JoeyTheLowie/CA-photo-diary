@@ -84,7 +84,8 @@ function render(trip, diary) {
     const pars = it.text.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
     const longCap = (it.caption || '').length > 120;
     if (longCap) pars.push(it.caption.trim());
-    pars.forEach((par, i) => { const q = document.createElement('p'); q.className = i === 0 && par.length <= 200 ? 'q' : 'body'; q.textContent = par; el.appendChild(q); });
+    const total = pars.join(' ').length;
+    pars.forEach((par, i) => { const q = document.createElement('p'); q.className = i === 0 && total <= 220 ? 'q' : 'body'; q.textContent = par; el.appendChild(q); });
     if (it.caption && !longCap) { const c = document.createElement('span'); c.textContent = it.caption; el.appendChild(c); }
     el._len = pars.join(' ').length;
     return el;
@@ -92,21 +93,28 @@ function render(trip, diary) {
   function layoutDay(d) {
     const Wc = d.el.clientWidth; if (!Wc || Wc === d.w) return; d.w = Wc;
     d.el.textContent = '';
-    /* On wider screens a note sits in the first row, to the left of the photos, like a magazine spread. */
-    const tile = d.note && d.list.length && Wc >= 760 && d.note._len <= 420 ? {tile: true, w: d.note._len > 160 ? 1.05 : .82, h: 1} : null;
-    d.note && d.note.classList.toggle('tile', !!tile);
-    rowsFor(tile ? [tile, ...d.list] : d.list, Wc).forEach(({r, h}, i) => {
-      const row = document.createElement('div'); row.className = 'jrow'; row.style.height = Math.round(h) + 'px';
-      r.forEach(p => {
-        if (p.tile) { d.note.style.flex = `${p.w} 1 0`; row.appendChild(d.note); return; }
-        const f = d.figs.get(p); const w = r.length === 1 ? Math.min(Wc, Math.max(p.w / p.h * h, Wc * .5)) : p.w / p.h * h;
-        f.style.flex = r.length === 1 ? '1 1 0' : `${(p.w / p.h).toFixed(4)} 1 0`; f.classList.toggle('fit', r.length === 1 && p.w / p.h < Wc / h * .7);
-        f.querySelector('source').sizes = Math.ceil(w) + 'px'; row.appendChild(f);
+    /* Notes are spread over the day: the photos are split into one group per note.
+       On wider screens each note sits inside its group's first row, alternating left and right, like a magazine spread. */
+    const N = d.notes.length, P = d.list.length, segs = [];
+    if (!N) segs.push({photos: d.list, note: null});
+    else for (let i = 0; i < N; i++) segs.push({photos: d.list.slice(Math.round(i * P / N), Math.round((i + 1) * P / N)), note: d.notes[i]});
+    segs.forEach(({photos: ph, note}, si) => {
+      const tile = note && ph.length && Wc >= 760 && note._len <= 220 ? {tile: true, w: note._len > 110 ? 1 : .82, h: 1} : null;
+      if (note) { note.classList.toggle('tile', !!tile); note.style.flex = ''; }
+      const items = tile ? (si % 2 ? [...ph, tile] : [tile, ...ph]) : ph;
+      rowsFor(items, Wc).forEach(({r, h}, i) => {
+        const row = document.createElement('div'); row.className = 'jrow'; row.style.height = Math.round(h) + 'px';
+        r.forEach(p => {
+          if (p.tile) { note.style.flex = `${p.w} 1 0`; row.appendChild(note); return; }
+          const f = d.figs.get(p); const w = r.length === 1 ? Math.min(Wc, Math.max(p.w / p.h * h, Wc * .5)) : p.w / p.h * h;
+          f.style.flex = r.length === 1 ? '1 1 0' : `${(p.w / p.h).toFixed(4)} 1 0`; f.classList.toggle('fit', r.length === 1 && p.w / p.h < Wc / h * .7);
+          f.querySelector('source').sizes = Math.ceil(w) + 'px'; row.appendChild(f);
+        });
+        d.el.appendChild(row);
+        if (i === 0 && note && !tile && note._len <= 200) d.el.appendChild(note);
       });
-      d.el.appendChild(row);
-      if (i === 0 && d.note && !tile && d.note._len <= 200) { d.note.style.flex = ''; d.el.appendChild(d.note); }
+      if (note && !note.parentNode) d.el.appendChild(note);
     });
-    if (d.note && !d.note.parentNode) { d.note.style.flex = ''; d.el.appendChild(d.note); }
   }
 
   withPhotos.forEach(s => {
@@ -119,9 +127,9 @@ function render(trip, diary) {
       const n = dayNo(d);
       day.innerHTML = `<div class="day-label">${fmtDay(d)}${n >= 1 && n <= TRIP_DAYS ? `<span>Day ${n}</span>` : ''}</div>`;
       const list = photos.filter(p => p.stop === s.id && p.date === date).sort((a, b) => (a.time || '').localeCompare(b.time || '') || a.id.localeCompare(b.id));
-      const note = notes.find(x => x.stop === s.id && x.date === date);
+      const dayNotes = notes.filter(x => x.stop === s.id && x.date === date).sort((a, b) => (a.i || 0) - (b.i || 0));
       const m = document.createElement('div'); m.className = 'rows';
-      DAYS.push({el: m, list, figs: new Map(list.map(p => [p, figure(p, s)])), note: note ? noteEl(note) : null, w: 0});
+      DAYS.push({el: m, list, figs: new Map(list.map(p => [p, figure(p, s)])), notes: dayNotes.map(noteEl), w: 0});
       day.appendChild(m); sec.appendChild(day);
     });
     host.appendChild(sec);

@@ -117,12 +117,14 @@ diary.notes = [];
 for (const f of (await fs.readdir(NOTES).catch(() => [])).sort()) {
   const m = f.match(/^(\d{4}-\d\d-\d\d)(?:-([a-z0-9-]+))?\.md$/);
   if (!m) continue;
-  const lines = (await fs.readFile(path.join(NOTES, f), 'utf8')).trim().split('\n');
-  let caption = '';
-  if (lines.length > 1 && /^\s*(—|--|–)\s*/.test(lines.at(-1))) caption = lines.pop().replace(/^\s*(—|--|–)\s*/, '').trim();
-  const text = lines.join('\n').split(/\n\s*\n/).map(par => par.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
-  if (!text) continue;
-  diary.notes.push({date: m[1], stop: m[2] && stopIds.has(m[2]) ? m[2] : stopFor(m[1]), text, caption});
+  const blocks = (await fs.readFile(path.join(NOTES, f), 'utf8')).trim().split(/\n\s*-{3,}\s*\n/);
+  blocks.forEach((block, i) => {
+    const lines = block.trim().split('\n');
+    let caption = '';
+    if (lines.length > 1 && /^\s*(—|--|–)\s/.test(lines.at(-1))) caption = lines.pop().replace(/^\s*(—|--|–)\s*/, '').trim();
+    const text = lines.join('\n').split(/\n\s*\n/).map(par => par.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
+    if (text) diary.notes.push({date: m[1], stop: m[2] && stopIds.has(m[2]) ? m[2] : stopFor(m[1]), text, caption, i});
+  });
 }
 
 // Remove image files that no photo points to any more.

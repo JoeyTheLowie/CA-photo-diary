@@ -50,6 +50,11 @@ textarea{resize:vertical;min-height:96px}
 .status{font-size:14px;color:var(--grey);min-height:1.2em;text-align:center}
 .status.ok{color:#B9D19A}.status.err{color:#F09A7A}
 .hint{font-size:13px;color:var(--grey);margin:0}
+.notes{display:flex;flex-direction:column;gap:14px}
+.nb{display:flex;flex-direction:column;gap:8px}
+.nb+.nb{border-top:1px solid var(--hair);padding-top:12px}
+.nbh{display:flex;align-items:center;font-size:13px;color:var(--grey)}
+#addNote{align-self:flex-start}
 .hint a{color:var(--pumice)}
 details summary{cursor:pointer;color:var(--grey);font-size:14px}
 details[open] summary{margin-bottom:12px}
@@ -76,10 +81,11 @@ details[open] summary{margin-bottom:12px}
   <section class="photos" id="photos" aria-live="polite"></section>
 
   <section class="card">
-    <h2 style="margin:0">Note or story for the day (optional)</h2>
+    <h2 style="margin:0">Notes for the day (optional)</h2>
     <label>Day<input id="noteDate" type="date"></label>
-    <label>Note<textarea id="noteText" placeholder="A line or a whole story. Short notes are shown big next to a photo; longer ones as a story. Leave an empty line between paragraphs."></textarea></label>
-    <label>Small line underneath (short)<input id="noteCap" type="text" placeholder="e.g. Tikal, before sunrise"></label>
+    <div id="noteList" class="notes"></div>
+    <button class="btn small" id="addNote" type="button">+ Add another note</button>
+    <p class="hint">Short notes are shown big next to the photos; longer ones as a story. Leave an empty line between paragraphs. Several notes are spread between the day's photos.</p>
     <p class="hint" id="noteHint"></p>
   </section>
 
@@ -113,9 +119,9 @@ let noteTouched=false,loadedNote=null,loadedText='';
 function setStatus(t,cls=''){const s=$('status');s.textContent=t;s.className='status '+cls}
 function refresh(){
   $('setup').hidden=!!token;$('repo').value=repo;$('actionsLink').href=`https://github.com/${repo}/actions`;
-  const nt=$('noteText').value.trim(),nc=$('noteCap').value.trim(),nd=$('noteDate').value;const hasNote=loadedNote===nd?loadedText!==nt+'|'+nc:nt.length>0;
+  const ns=serialize(),nd=$('noteDate').value;const hasNote=loadedNote===nd?loadedText!==ns:ns.length>0;
   $('post').disabled=!token||(!items.length&&!hasNote);
-  $('post').textContent=items.length?`Post ${items.length} photo${items.length>1?'s':''}${hasNote?' and note':''}`:hasNote?'Post note':'Post';
+  $('post').textContent=items.length?`Post ${items.length} photo${items.length>1?'s':''}${hasNote?' and notes':''}`:hasNote?'Post notes':'Post';
 }
 $('saveToken').onclick=()=>{const v=$('token').value.trim();if(!v)return;token=v;store.set('diary.token',v);$('token').value='';refresh();loadNote()};
 $('saveRepo').onclick=()=>{const v=$('repo').value.trim().replace(/^https:\/\/github.com\//,'').replace(/\/$/,'');if(/^[\w.-]+\/[\w.-]+$/.test(v)){repo=v;store.set('diary.repo',v);setStatus('Repository saved.','ok')}else setStatus('Use the form owner/name.','err');refresh()};
@@ -173,18 +179,30 @@ $('files').onchange=async e=>{
   }
 };
 
-/* ---------- note ---------- */
-
+/* ---------- notes: one file per day, blocks separated by a line with --- ---------- */
+function addBlock(t='',c=''){
+  const el=document.createElement('div');el.className='nb';
+  el.innerHTML=`<div class="nbh"><span></span><button class="x" type="button" aria-label="Remove note">×</button></div><textarea class="nt" placeholder="A line or a whole story."></textarea><input class="nc" type="text" placeholder="Small line underneath (optional), e.g. Tikal, before sunrise">`;
+  el.querySelector('.nt').value=t;el.querySelector('.nc').value=c;
+  el.querySelectorAll('textarea,input').forEach(i=>i.oninput=refresh);
+  el.querySelector('.x').onclick=()=>{el.remove();if(!$('noteList').children.length)addBlock();number();refresh()};
+  $('noteList').appendChild(el);number();
+}
+function number(){[...$('noteList').children].forEach((b,i,a)=>{b.querySelector('.nbh span').textContent=a.length>1?`Note ${i+1}`:'Note'})}
+function serialize(){return [...$('noteList').children].map(b=>{const t=b.querySelector('.nt').value.trim(),c=b.querySelector('.nc').value.trim();return t?t+(c?`\n— ${c}`:''):''}).filter(Boolean).join('\n\n---\n\n')}
+function parseFile(txt){return txt.trim().split(/\n\s*-{3,}\s*\n/).map(bl=>{const lines=bl.trim().split('\n');let cap='';if(lines.length>1&&/^\s*(—|--|–)\s/.test(lines.at(-1)))cap=lines.pop().replace(/^\s*(—|--|–)\s*/,'');return[lines.join('\n').trim(),cap.trim()]}).filter(b=>b[0])}
+function setBlocks(arr){$('noteList').textContent='';(arr.length?arr:[['','']]).forEach(([t,c])=>addBlock(t,c))}
+$('addNote').onclick=()=>{addBlock();$('noteList').lastElementChild.querySelector('.nt').focus()};
+setBlocks([]);
 function syncNoteDate(){if(noteTouched)return;const d=items.map(i=>i.taken).filter(Boolean).sort().pop();if(d&&$('noteDate').value!==d.slice(0,10)){$('noteDate').value=d.slice(0,10);loadNote()}}
 $('noteDate').value=localISO(new Date()).slice(0,10);
 $('noteDate').onchange=()=>{noteTouched=true;loadNote()};
-$('noteText').oninput=refresh;$('noteCap').oninput=refresh;
 async function loadNote(){
-  const d=$('noteDate').value;loadedNote=null;$('noteHint').textContent='';if(!token||!d)return;
+  const d=$('noteDate').value;loadedNote=null;loadedText='';$('noteHint').textContent='';if(!token||!d)return;
   try{const f=await gh(`/contents/notes/${d}.md`);if($('noteDate').value!==d)return;loadedNote=d;
-    const lines=fromb64(f.content).trim().split('\n');let cap='';if(lines.length>1&&/^\s*(—|--|–)/.test(lines.at(-1)))cap=lines.pop().replace(/^\s*(—|--|–)\s*/,'');
-    $('noteText').value=lines.join('\n');$('noteCap').value=cap;loadedText=$('noteText').value.trim()+'|'+cap.trim();$('noteHint').textContent='This day already has a note. Your changes replace it; clear the text and post to delete it.';refresh()}
-  catch(e){if(e.status!==404)$('noteHint').textContent='Could not check for an existing note: '+e.message}
+    setBlocks(parseFile(fromb64(f.content)));loadedText=serialize();
+    $('noteHint').textContent='This day already has notes; they are loaded above. Your changes replace them. Remove them all and post to delete them.';refresh()}
+  catch(e){if(e.status!==404)$('noteHint').textContent='Could not check for existing notes: '+e.message}
 }
 
 /* ---------- post: one commit with every photo, its sidecar and the note ---------- */
@@ -201,13 +219,13 @@ $('post').onclick=async()=>{
       tree.push({path:name+'.jpg',mode:'100644',type:'blob',sha});
       tree.push({path:name+'.json',mode:'100644',type:'blob',content:JSON.stringify({caption:it.caption.trim(),hero:it.hero,taken:it.taken,exif:it.exif})+'\n'});
     }
-    const nd=$('noteDate').value,nt=$('noteText').value.trim(),nc=$('noteCap').value.trim();
-    const changed=!(loadedNote===nd&&loadedText===nt+'|'+nc);
-    if(nd&&nt&&changed)tree.push({path:`notes/${nd}.md`,mode:'100644',type:'blob',content:nt+(nc?`\n— ${nc}`:'')+'\n'});
+    const nd=$('noteDate').value,nt=serialize();
+    const changed=!(loadedNote===nd&&loadedText===nt);
+    if(nd&&nt&&changed)tree.push({path:`notes/${nd}.md`,mode:'100644',type:'blob',content:nt+'\n'});
     else if(nd&&!nt&&loadedNote===nd)tree.push({path:`notes/${nd}.md`,mode:'100644',type:'blob',sha:null});
     if(!tree.length)throw new Error('Nothing to post.');
     setStatus('Saving…');
-    const msg=good.length?`Add ${good.length} photo${good.length>1?'s':''}${nt?' and a note':''}`:`Note for ${nd}`;
+    const msg=good.length?`Add ${good.length} photo${good.length>1?'s':''}${nt?' and notes':''}`:`Notes for ${nd}`;
     for(let attempt=0;;attempt++){
       const ref=await gh('/git/ref/heads/main');const head=await gh(`/git/commits/${ref.object.sha}`);
       const t=await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:head.tree.sha,tree})});
@@ -215,7 +233,7 @@ $('post').onclick=async()=>{
       try{await gh('/git/refs/heads/main',{method:'PATCH',body:JSON.stringify({sha:c.sha})});break}
       catch(e){if(attempt<3&&e.status===422){await new Promise(r=>setTimeout(r,1500));continue}throw e}
     }
-    items.splice(0).forEach(i=>i.el.remove());$('noteText').value='';$('noteCap').value='';$('noteHint').textContent='';noteTouched=false;loadedNote=null;
+    items.splice(0).forEach(i=>i.el.remove());setBlocks([]);$('noteHint').textContent='';noteTouched=false;loadedNote=null;loadedText='';
     setStatus('Posted. The site updates in about two minutes.','ok');
   }catch(e){
     setStatus(e.status===401?'GitHub did not accept the token. Check it in Settings.':e.status===404?'Repository not found, or the token has no access to it.':'Something went wrong: '+e.message,'err');

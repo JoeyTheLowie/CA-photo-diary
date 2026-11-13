@@ -36,7 +36,7 @@ All of these can be done in the GitHub app or on github.com, then the site rebui
 | --- | --- |
 | Change a caption, move a photo to another stop, or make it full width | `data/diary.json`: edit `caption`, `stop` (add `"stopFixed": true`), or `hero` |
 | Remove a photo | `data/diary.json`: delete its entry. The image files are cleaned up on the next build. |
-| Edit or delete a note | `notes/YYYY-MM-DD.md`. A last line starting with `—` becomes the small line underneath. |
+| Edit or delete notes | On the post page: pick the day, the existing notes load, edit and post. Or edit `notes/YYYY-MM-DD.md`: notes are separated by a line with `---`, and a last line starting with `— ` becomes the small line underneath. |
 | Change the route, dates or altitudes | `data/trip.json`. Photos move to the right stop automatically. |
 | Rebuild by hand | **Actions → Process photos and publish → Run workflow** |
 
