@@ -5,7 +5,7 @@
  "days": 73,
  "home": {"name":"Amsterdam","date":"2026-11-27"},
  "finish": {"name":"Managua","date":"2027-02-06"},
- "texts": {"title":"JoeJoe in Central America: GUA, BEL, HON, NIC","headline":"Finding myself, obviously.","intro":"Hi! I'll be on the road for a bit, but undoubtedly taking some pictures too. Will be shared here :)","footer":"All shot on sony a7IV, Sigma 24-70 and Tamron 50-400."},
+ "texts": {"headline":"JoeJoe in Central America: GUA, BEL, HON, NIC","intro":"Finding myself, obviously.","footer":"All shot on sony a7IV, Sigma 24-70 and Tamron 50-400."},
  "stops": [
   {"id":"antigua","name":"Antigua & Acatenango","country":"Guatemala","from":"2026-11-27","to":"2026-12-02","alt":3976,"peak":"Acatenango"},
   {"id":"xela","name":"Xela","country":"Guatemala","from":"2026-12-02","to":"2026-12-08","alt":4220,"peak":"Tajumulco"},
