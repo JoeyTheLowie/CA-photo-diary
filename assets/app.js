@@ -283,7 +283,7 @@ function render(trip, diary) {
       if (has) b.addEventListener('click', () => document.getElementById(p.s.id).scrollIntoView({behavior: reduce() ? 'auto' : 'smooth'}));
       ridge.appendChild(b);
     });
-    /* row under the ridge: end labels, country names, border ticks */
+    /* row under the ridge: end labels and country names */
     const row = $('ridgeRow');
     /* phones: a short home label and no finish label, so all four country names fit */
     row.innerHTML = innerWidth < 700 ? `<span class="end-l">${esc(trip.home.short || trip.home.name.slice(0, 3).toUpperCase())}</span>`
@@ -291,7 +291,6 @@ function render(trip, diary) {
     const runs = []; STOPS.forEach(s => { const a = dayNo(D(s.from)) - 1, b = dayNo(D(s.to)) - 1, last = runs[runs.length - 1]; if (last && last.c === s.country) last.b = b; else runs.push({c: s.country, a, b}); });
     const ends = [...row.children].map(e => e.getBoundingClientRect());
     runs.forEach((r, i) => {
-      if (i) { const t = document.createElement('i'); t.className = 'tick'; t.style.left = X(r.a) + 'px'; row.appendChild(t); }
       if (r.b - r.a < 3) return;
       const l = document.createElement('span'); l.className = 'ct'; l.textContent = r.c; l.style.left = X((r.a + r.b) / 2) + 'px'; row.appendChild(l);
       /* nudge a name clear of the end labels and the row edges before giving up on it */
