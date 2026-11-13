@@ -1,11 +1,11 @@
 {
- "title": "JoeJoe in Central America: GUA, BEL, HON, NIC",
+ "title": "On the road to find myself. obviously.",
  "start": "2026-11-27",
  "end": "2027-02-06",
  "days": 73,
  "home": {"name":"Amsterdam","date":"2026-11-27"},
  "finish": {"name":"Managua","date":"2027-02-06"},
- "texts": {"headline":"JoeJoe in Central America: GUA, BEL, HON, NIC","intro":"Finding myself, obviously.","footer":"All shot on sony a7IV, Sigma 24-70 and Tamron 50-400."},
+ "texts": {"headline":"JoeJoe in Central America","intro":"GUA, BEL, HON, NIC","footer":"All shot on sony a7IV, Sigma 24-70 and Tamron 50-400.","title":"On the road to find myself. obviously."},
  "stops": [
   {"id":"antigua","name":"Antigua & Acatenango","country":"Guatemala","from":"2026-11-27","to":"2026-12-02","alt":3976,"peak":"Acatenango"},
   {"id":"xela","name":"Xela","country":"Guatemala","from":"2026-12-02","to":"2026-12-08","alt":4220,"peak":"Tajumulco"},
