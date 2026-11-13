@@ -285,14 +285,22 @@ function render(trip, diary) {
     });
     /* row under the ridge: end labels, country names, border ticks */
     const row = $('ridgeRow');
-    row.innerHTML = `<span class="end-l">${esc(trip.home.name)} · ${fmtShort(TRIP_START)}</span><span class="end-r">${esc(trip.finish.name)} · ${fmtShort(END)}</span>`;
+    /* phones: a short home label and no finish label, so all four country names fit */
+    row.innerHTML = innerWidth < 700 ? `<span class="end-l">${esc(trip.home.short || trip.home.name.slice(0, 3).toUpperCase())}</span>`
+      : `<span class="end-l">${esc(trip.home.name)} · ${fmtShort(TRIP_START)}</span><span class="end-r">${esc(trip.finish.name)} · ${fmtShort(END)}</span>`;
     const runs = []; STOPS.forEach(s => { const a = dayNo(D(s.from)) - 1, b = dayNo(D(s.to)) - 1, last = runs[runs.length - 1]; if (last && last.c === s.country) last.b = b; else runs.push({c: s.country, a, b}); });
     const ends = [...row.children].map(e => e.getBoundingClientRect());
     runs.forEach((r, i) => {
       if (i) { const t = document.createElement('i'); t.className = 'tick'; t.style.left = X(r.a) + 'px'; row.appendChild(t); }
       if (r.b - r.a < 3) return;
       const l = document.createElement('span'); l.className = 'ct'; l.textContent = r.c; l.style.left = X((r.a + r.b) / 2) + 'px'; row.appendChild(l);
-      const rc = l.getBoundingClientRect(); if (ends.some(e => rc.left < e.right + 8 && rc.right > e.left - 8)) l.remove();
+      /* nudge a name clear of the end labels and the row edges before giving up on it */
+      const rr = row.getBoundingClientRect(); let rc = l.getBoundingClientRect(), dx = 0;
+      ends.forEach(e => { if (rc.left < e.right + 10 && rc.right > e.left - 10) dx = e.left < rr.left + rr.width / 2 ? e.right + 10 - rc.left : e.left - 10 - rc.right; });
+      if (rc.right + dx > rr.right) dx = rr.right - rc.right;
+      if (dx) { l.style.left = (parseFloat(l.style.left) + dx) + 'px'; rc = l.getBoundingClientRect(); }
+      const prev = [...row.querySelectorAll('.ct')].filter(o => o !== l).map(o => o.getBoundingClientRect());
+      if ([...ends, ...prev].some(e => rc.left < e.right + 8 && rc.right > e.left - 8)) l.remove();
     });
     setActive(current);
   }
