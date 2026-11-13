@@ -300,7 +300,12 @@ function render(trip, diary) {
   function setActive(id) { current = id; ridge.querySelectorAll('.pt').forEach(b => b.classList.toggle('active', b.dataset.id === id)); }
   drawRidge();
   const rbar = $('rbar');
-  new IntersectionObserver(([e]) => { const st = !e.isIntersecting && e.boundingClientRect.top < 0; if (st !== rbar.classList.contains('stuck')) { rbar.classList.toggle('stuck', st); drawRidge(); } }, {rootMargin: '-9px 0px 0px 0px'}).observe($('sentinel'));
+  /* stuck = the bar has reached its sticky position (the sentinel just above it has scrolled past that line) */
+  const sentinel = $('sentinel'); let sq = false;
+  const checkStuck = () => { sq = false; const st = sentinel.getBoundingClientRect().top < parseFloat(getComputedStyle(rbar).top) - .5;
+    if (st !== rbar.classList.contains('stuck')) { rbar.classList.toggle('stuck', st); drawRidge(); } };
+  addEventListener('scroll', () => { if (!sq) { sq = true; requestAnimationFrame(checkStuck); } }, {passive: true});
+  addEventListener('resize', checkStuck); checkStuck();
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawRidge, 120); });
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), {rootMargin: '-45% 0px -50% 0px'});
   document.querySelectorAll('.stop').forEach(s => io.observe(s));
