@@ -39,53 +39,65 @@ function render(trip, diary) {
   const used = new Set([...photos.map(p => p.stop), ...notes.map(n => n.stop)]);
   const withPhotos = STOPS.filter(s => used.has(s.id)).reverse();
   const host = $('stops'); const ALL = [];
-  const SIZES = {full:'100vw', big:'(max-width:760px) 100vw, 62vw', wide:'(max-width:760px) 100vw, 58vw', half:'(max-width:760px) 100vw, 50vw',
-    pp:'(max-width:760px) 100vw, 50vw', solo:'(max-width:760px) 100vw, 50vw', side:'(max-width:760px) 100vw, 34vw', port:'(max-width:760px) 100vw, 42vw', third:'(max-width:760px) 50vw, 34vw'};
+  const GAP = 8, DAYS = [];
 
-  function recipe(list, note) {
-    const L = p => p.w / p.h >= 1.15, P = p => p.w / p.h < .9;
-    const out = [], rest = [...list];
-    const heroes = rest.filter(p => p.hero);
-    heroes.forEach(h => { rest.splice(rest.indexOf(h), 1); out.push([P(h) ? 'solo' : 'full', h]); });
-    if (!heroes.length && rest.length >= 4) { const i = rest.findIndex(L); if (i >= 0) out.push(['full', rest.splice(i, 1)[0]]); }
-    let tail = null;
-    const isStory = note && (note.text.length > 180 || note.text.includes('\n') || (note.caption || '').length > 120);
-    if (note && (isStory || (rest.length && rest.length % 2 === 0))) { tail = note; note = null; }
-    if (note) {
-      if (rest.length) { const p = rest.shift(); out.push(...(P(p) ? [['port', p], ['note n7', note]] : [['wide', p], ['note', note]])); }
-      else out.push(['note solo-note', note]);
+  /* Justified rows: every row fills the full width, photos keep their shape, nothing is cropped
+     (except a lone photo that would be taller than the screen). */
+  function rowsFor(list, Wc) {
+    const T = Wc < 600 ? Wc * .82 : Math.min(Math.max(Wc * .36, 300), 620);   /* target row height */
+    const maxH = Wc < 600 ? innerHeight * .8 : Math.min(innerHeight * .82, Wc * .9);
+    const ar = p => p.w / p.h, hOf = r => (Wc - GAP * (r.length - 1)) / r.reduce((a, p) => a + ar(p), 0);
+    const rows = []; let row = [];
+    const heroes = list.filter(p => p.hero && ar(p) >= 1.15);
+    heroes.forEach(h => rows.push([h]));
+    list.filter(p => !heroes.includes(p)).forEach(p => {
+      row.push(p);
+      const h = hOf(row);
+      if (h <= T) {
+        if (row.length > 1 && Math.abs(hOf(row.slice(0, -1)) - T) < Math.abs(h - T)) { rows.push(row.slice(0, -1)); row = [p]; }
+        else { rows.push(row); row = []; }
+      }
+    });
+    if (row.length) {
+      const last = rows[rows.length - 1];
+      if (hOf(row) > T * 1.35 && last && !heroes.includes(last[0]) && hOf(last.concat(row)) > T * .55) rows[rows.length - 1] = last.concat(row);
+      else rows.push(row);
     }
-    let k = 0;
-    while (rest.length) {
-      const n = rest.length, take = n === 4 ? 2 : n === 5 ? 3 : Math.min(3, n), g = rest.splice(0, take);
-      if (take === 1) out.push([P(g[0]) ? 'solo' : 'full', g[0]]);
-      else if (take === 2) {
-        const [a, b] = g;
-        if (P(a) && P(b)) out.push(['pp', a], ['pp', b]);
-        else if (P(a)) out.push(['port', a], ['wide', b]);
-        else if (P(b)) out.push(['wide', a], ['port', b]);
-        else out.push(['half', a], ['half', b]);
-      } else if (k++ % 2 === 0 && !g.every(P)) {
-        const bi = Math.max(0, g.findIndex(L)); const big = g.splice(bi, 1)[0];
-        out.push(['big', big], ['side', g[0]], ['side', g[1]]);
-      } else out.push(['third', g[0]], ['third', g[1]], ['third', g[2]]);
-    }
-    if (tail) out.push([isStory ? 'note story' : 'note solo-note', tail]);
-    return out;
+    return rows.map(r => ({r, h: Math.min(hOf(r), maxH)}));
   }
 
-  function figure(cls, p, s) {
+  function figure(p, s) {
     const base = 'img/' + p.id;
     const f = document.createElement('figure');
-    f.className = 'ph ' + cls; f.tabIndex = 0; f.setAttribute('role', 'button');
+    f.className = 'ph'; f.tabIndex = 0; f.setAttribute('role', 'button');
     f.setAttribute('aria-label', p.caption || `Photo from ${s.name}`);
     if (p.lqip) f.style.backgroundImage = `url(${p.lqip})`;
-    f.innerHTML = `<picture><source type="image/avif" srcset="${p.sizes.map(w => `${base}-${w}.avif ${w}w`).join(', ')}" sizes="${SIZES[cls.split(' ')[0]] || '100vw'}"><img src="${base}.jpg" width="${p.w}" height="${p.h}" alt="${esc(p.caption)}" loading="lazy" decoding="async"></picture>`;
+    f.innerHTML = `<picture><source type="image/avif" srcset="${p.sizes.map(w => `${base}-${w}.avif ${w}w`).join(', ')}" sizes="100vw"><img src="${base}.jpg" width="${p.w}" height="${p.h}" alt="${esc(p.caption)}" loading="lazy" decoding="async"></picture>`;
     const idx = ALL.length;
     ALL.push({p, title: p.caption || s.name, where: s.name, when: `${fmtShort(D(p.date))}${p.time ? ', ' + p.time : ''}`, exif: p.exif});
     f.addEventListener('click', () => openLb(idx));
     f.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openLb(idx); } });
     return f;
+  }
+  function noteEl(it) {
+    const longCap = (it.caption || '').length > 120;
+    const story = it.text.length > 180 || it.text.includes('\n') || longCap;
+    const el = document.createElement('div'); el.className = story ? 'note story' : 'note';
+    (it.text + (longCap ? '\n\n' + it.caption : '')).split(/\n\s*\n/).forEach(par => { const q = document.createElement('p'); q.textContent = par.trim(); el.appendChild(q); });
+    if (it.caption && !longCap) { const c = document.createElement('span'); c.textContent = it.caption; el.appendChild(c); }
+    return el;
+  }
+  function layoutDay(d) {
+    const Wc = d.el.clientWidth; if (!Wc || Wc === d.w) return; d.w = Wc;
+    d.el.textContent = '';
+    rowsFor(d.list, Wc).forEach(({r, h}, i) => {
+      const row = document.createElement('div'); row.className = 'jrow'; row.style.height = Math.round(h) + 'px';
+      r.forEach(p => { const f = d.figs.get(p); const w = r.length === 1 ? Math.min(Wc, Math.max(p.w / p.h * h, Wc * .5)) : p.w / p.h * h; f.style.flex = r.length === 1 ? '1 1 0' : `${(p.w / p.h).toFixed(4)} 1 0`; f.classList.toggle('fit', r.length === 1 && p.w / p.h < Wc / h * .7);
+        f.querySelector('source').sizes = Math.ceil(w) + 'px'; row.appendChild(f); });
+      d.el.appendChild(row);
+      if (i === 0 && d.note && !d.note.classList.contains('story')) d.el.appendChild(d.note);
+    });
+    if (d.note && !d.note.parentNode) d.el.appendChild(d.note);
   }
 
   withPhotos.forEach(s => {
@@ -99,16 +111,8 @@ function render(trip, diary) {
       day.innerHTML = `<div class="day-label">${fmtDay(d)}${n >= 1 && n <= TRIP_DAYS ? `<span>Day ${n}</span>` : ''}</div>`;
       const list = photos.filter(p => p.stop === s.id && p.date === date).sort((a, b) => (a.time || '').localeCompare(b.time || '') || a.id.localeCompare(b.id));
       const note = notes.find(x => x.stop === s.id && x.date === date);
-      const m = document.createElement('div'); m.className = 'mosaic';
-      recipe(list, note).forEach(([cls, it]) => {
-        if (cls.startsWith('note')) {
-          const el = document.createElement('div'); el.className = cls;
-          const longCap = (it.caption || '').length > 120;
-          (it.text + (longCap ? '\n\n' + it.caption : '')).split(/\n\s*\n/).forEach(par => { const q = document.createElement('p'); q.textContent = par.trim(); el.appendChild(q); });
-          if (it.caption && !longCap) { const c = document.createElement('span'); c.textContent = it.caption; el.appendChild(c); }
-          m.appendChild(el);
-        } else m.appendChild(figure(cls, it, s));
-      });
+      const m = document.createElement('div'); m.className = 'rows';
+      DAYS.push({el: m, list, figs: new Map(list.map(p => [p, figure(p, s)])), note: note ? noteEl(note) : null, w: 0});
       day.appendChild(m); sec.appendChild(day);
     });
     host.appendChild(sec);
@@ -123,6 +127,10 @@ function render(trip, diary) {
     p.innerHTML = `Next up: <b>${esc(nextStop.name)}</b>, from ${D(nextStop.from).toLocaleDateString('en-GB', {day:'numeric', month:'long'})}.`;
     host.prepend(p);
   }
+  const layoutAll = () => DAYS.forEach(layoutDay);
+  layoutAll();
+  let lt; addEventListener('resize', () => { clearTimeout(lt); lt = setTimeout(layoutAll, 100); });
+  document.fonts && document.fonts.ready.then(layoutAll);
   /* fade photos in over their blurred placeholder */
   host.querySelectorAll('.ph img').forEach(im => { if (im.complete && im.naturalWidth) im.classList.add('in'); else im.addEventListener('load', () => im.classList.add('in'), {once: true}); });
 
