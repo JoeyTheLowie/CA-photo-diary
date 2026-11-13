@@ -64,7 +64,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .ridge-row .tick{position:absolute;top:0;width:1px;height:8px;background:var(--hair)}
 
 /* ---------- intro ---------- */
-.intro{padding:64px 0 clamp(170px,14vw,210px);display:flex;flex-direction:column;gap:12px}
+.intro{min-height:clamp(520px,calc(100svh - 275px),640px);padding:64px 0 clamp(170px,14vw,210px);display:flex;flex-direction:column;gap:12px}
 .intro h1{margin:0;font:800 clamp(40px,7vw,96px)/.92 var(--f-title);text-transform:uppercase;letter-spacing:-.02em;text-wrap:balance;max-width:11.5ch;text-shadow:0 2px 24px rgba(10,15,36,.5)}
 .intro p{margin:0;max-width:44ch;font-size:19px;line-height:1.45;color:rgba(237,232,224,.8)}
 
