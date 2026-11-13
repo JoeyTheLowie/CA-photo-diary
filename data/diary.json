@@ -1,4 +1,83 @@
 {
- "photos": [],
- "notes": []
+ "photos": [
+  {
+   "id": "20210529-1129-e8de11f7",
+   "hash": "e8de11f7",
+   "date": "2021-05-29",
+   "time": "11:29",
+   "stop": "antigua",
+   "w": 2048,
+   "h": 1365,
+   "sizes": [
+    640,
+    1280,
+    2048
+   ],
+   "caption": "test 2",
+   "hero": true,
+   "exif": "90 mm · f/8 · 1/160 s · ISO 800",
+   "lqip": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAACQAwCdASoUAA0APt1apkyopSOiMAgBEBuJQBOgA+fJ0MAIyQxAAP70VFmpQ7C+QpZxKwHwNY4OD+ylNekwJEaqvxpESnHwVhyKYfQNVpdPDN+g5WeLskcKxgPVV/EYqUDhLh22PYggAAAA"
+  },
+  {
+   "id": "20230731-1324-5b9f47ea",
+   "hash": "5b9f47ea",
+   "date": "2023-07-31",
+   "time": "13:24",
+   "stop": "antigua",
+   "w": 1152,
+   "h": 2048,
+   "sizes": [
+    640,
+    1152
+   ],
+   "caption": "test 3",
+   "hero": false,
+   "exif": "18 mm · f/18 · 1/5 s · ISO 100",
+   "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBQCdASoUACQAPt1eqE0opSQiKqwBEBuJZwDSrBZtkvbwQdbRhHNdoukS/sn1b6QAAP71bRRxGCqs3mFUeXZbJjOXVJUQJdVc93cvc2sXI20aDsUyuAZQnb2U4Qysr1tnE4xJZQAbhkY7oxF++V+tNpBsygAA"
+  },
+  {
+   "id": "20261113-1538-073ed4b3",
+   "hash": "073ed4b3",
+   "date": "2026-11-13",
+   "time": "15:38",
+   "stop": "antigua",
+   "w": 1638,
+   "h": 2048,
+   "sizes": [
+    640,
+    1280,
+    1638
+   ],
+   "caption": "test 4",
+   "hero": true,
+   "exif": "",
+   "lqip": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAACwBACdASoUABkAPt1epkyopaOiMBgMARAbiWkAAC3iuaU1a/41BGtcPKJsvbQAAP72icGQwaNNPcKaQQgnVhzR41si7cjLUFn+L5N2MdKFeWFBTLC7prBgJIjDOQAA"
+  },
+  {
+   "id": "20261113-1539-ac2259ae",
+   "hash": "ac2259ae",
+   "date": "2026-11-13",
+   "time": "15:39",
+   "stop": "antigua",
+   "w": 2048,
+   "h": 1365,
+   "sizes": [
+    640,
+    1280,
+    2048
+   ],
+   "caption": "test 1",
+   "hero": false,
+   "exif": "",
+   "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwAwCdASoUAA0APt1apkyopSOiMAgBEBuJZgCdMoACazB1v6zKBpaAAP7zBznddmDSg7Hu6Q9po/ea76SZPG98s4FpKZFuPAkT3Il4yWWZlChk5YyXXE+GngWBt0PY2R8BOIW7YYAAAA=="
+  }
+ ],
+ "notes": [
+  {
+   "date": "2026-11-13",
+   "stop": "antigua",
+   "text": "Was fucking great today",
+   "caption": "Ik vraag me toch af hoeveel tekst hier in kan. Als ik een langer verhaal wil vertellen, hoe ziet dat eruit? ik wil het vooral even blijven proberen als er toch wle een keer iets van het hart moet. Ik ga eigenlijk helemaal niet zo lang weg, maar ik vond dit een veel leukere optie dan polarstep.s"
+  }
+ ]
 }
