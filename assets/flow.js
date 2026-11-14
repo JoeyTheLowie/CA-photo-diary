@@ -36,8 +36,8 @@ function sample(W, RAD) {
   for (let i = 1; i < V.length; i++) {
     const p = V[i];
     if (p.S) {   /* a smooth S-bend from one channel to the next: leaves and arrives vertically */
-      const x0 = px, y0 = py, ym = (y0 + p.y) / 2, n = Math.max(8, Math.ceil((Math.abs(p.x - x0) + Math.abs(p.y - y0)) / st));
-      for (let k = 1; k <= n; k++) { const t = k / n, u = 1 - t; xs.push(u * u * u * x0 + 3 * u * u * t * x0 + 3 * u * t * t * p.x + t * t * t * p.x); ys.push(u * u * u * y0 + 3 * u * u * t * ym + 3 * u * t * t * ym + t * t * t * p.y); }
+      const x0 = px, y0 = py, ym = (y0 + p.y) / 2, f = clamp((Math.abs(p.x - x0) / Math.max(1, p.y - y0) - 2) * .06, 0, .32), c1 = x0 + (p.x - x0) * f, c2 = p.x - (p.x - x0) * f, n = Math.max(8, Math.ceil((Math.abs(p.x - x0) + Math.abs(p.y - y0)) / st));
+      for (let k = 1; k <= n; k++) { const t = k / n, u = 1 - t; xs.push(u * u * u * x0 + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t * t * t * p.x); ys.push(u * u * u * y0 + 3 * u * u * t * ym + 3 * u * t * t * ym + t * t * t * p.y); }
       px = p.x; py = p.y; if (p.tag) tag[p.tag] = xs.length - 1; continue;
     }
     if (i < V.length - 1) {
@@ -88,7 +88,7 @@ function wander(C, cor, noise, lw) {
     OFF[i] = o; PX[i] = C.X[i] - C.TY[i] * o; PY[i] = C.Y[i] + C.TX[i] * o;
   }
   /* fluids don't make sharp corners: blur the drawn line a few times (ends stay put) */
-  const K = 7, tx = new Float32Array(n), ty = new Float32Array(n);
+  const K = 13, tx = new Float32Array(n), ty = new Float32Array(n);
   for (let pass = 0; pass < 3; pass++) {
     for (let i = 0; i < n; i++) {
       const k = Math.min(K, i, n - 1 - i); let sx = 0, syy = 0;
@@ -219,7 +219,8 @@ function build() {
         const lo = hb.left + 24, hi = hb.right - 24;
         const xt = lerp(lo, hi, .25 + rr() * .5);   /* right through the name */
         const y1 = row.top - 16, y2 = row.bot + 14;
-        if (Math.abs(xt - x) > 2) W.push({x, y: prevB + Math.min(10, (y1 - prevB) * .2)}, {x: xt, y: y1 - 6, S: true}); else W.push({x, y: y1 - 6});
+        const yIn = y1 - Math.min(30, Math.max(8, (y1 - prevB) * .35));   /* a straight drop into the hole, so the stream really falls in */
+          if (Math.abs(xt - x) > 2) W.push({x, y: prevB + Math.min(10, (y1 - prevB) * .2)}, {x: xt, y: yIn, S: true}); else W.push({x, y: yIn});
         W.push({x: xt, y: y2 + 2});
         TUBES.push({y1, y2, sc: 1.25, in: rr() < .5 ? 'pit' : 'crack', out: rr() < .5 ? 'outcrop' : 'cone', sd: ri * 1.7});
         x = xt; prevB = y2 + 2; lastY = y2 + 2; run = 0; since = 0; return;
@@ -476,14 +477,14 @@ function frame(now) {
   /* ---- lava: lumpy, cooling from the surface, glowing where it's fresh ---- */
   const lavaStream = (st, i0, i1, reachMain, w = 1) => {
     if (O.crust) {
-      for (let j = i0; j < i1; j += 4) { const e = Math.min(j + 5, i1), l = st.L[j]; ctx.strokeStyle = '#4b2317'; ctx.lineWidth = LW * (1.55 + .55 * vn(st.toMain(l), 22, 9)) * w; path(st, j, e); ctx.stroke(); }
-      path(st, i0, i1); ctx.strokeStyle = 'rgba(232,98,58,.28)'; ctx.lineWidth = LW * .5 * w; ctx.stroke();
+      for (let j = i0; j < i1; j += 4) { const e = Math.min(j + 5, i1), l = st.L[j]; ctx.strokeStyle = '#4b2317'; ctx.lineWidth = LW * (1.6 + .25 * vn(st.toMain(l), 22, 9)) * w; path(st, j, e); ctx.stroke(); }
+      path(st, i0, i1); ctx.strokeStyle = 'rgba(214,92,52,.55)'; ctx.lineWidth = LW * 1.25 * w; ctx.stroke();   /* cooled lava keeps its width; only heat changes colour */
       ctx.save(); ctx.shadowColor = 'rgba(240,110,50,.85)'; ctx.shadowBlur = 8;
       for (let j = i0; j < i1; j += 4) {
         const e = Math.min(j + 5, i1), lm = st.toMain(st.L[j]), age = reduced ? 99 : (now - born(lm, now)) / 1000;
         const h = Math.max(1 - sstep(.3, 5, age), reachMain < S.l1A + 1 ? 1 - clamp((reachMain - lm) / 140, 0, 1) : 0, lm < S.h0 - 20 ? .8 : lm < S.h0 + 160 ? .8 * (1 - (lm - S.h0 + 20) / 180) : 0);   /* on the volcano it stays a live, glowing flow */
         if (h < .06) continue;
-        ctx.strokeStyle = heatCol(h); ctx.lineWidth = LW * (1.1 + .65 * h) * w; path(st, j, e); ctx.stroke();
+        ctx.strokeStyle = heatCol(h); ctx.lineWidth = LW * 1.35 * w; path(st, j, e); ctx.stroke();
       }
       ctx.restore();
     } else { ctx.save(); ctx.shadowColor = 'rgba(240,110,50,.8)'; ctx.shadowBlur = 7; path(st, i0, i1); ctx.strokeStyle = '#E8623A'; ctx.lineWidth = LW * 1.3 * w; ctx.stroke(); ctx.restore(); }
