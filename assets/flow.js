@@ -26,7 +26,7 @@ const vineN = (l, s = 0) => clamp(.75 * vn(l, 100, 6 + s) + .2 * vn(l, 31, 7 + s
 
 /* ---------- route: centre lines through the free space; the drawn streams wander inside it ---------- */
 let R = null, S = {}, F = {}, MAIN = null, HUG = null;
-let OT = [], OP = [], SEAC = null, BUB = [], BUBT = 0, ANIMALS = [], LEAVES = [], SHOOTS = [], POOLS = [], BR = [], STALLS = [], SPL = [], SPRIGS = [], TUFTS = [], DELTAS = [], PL = false;
+let TUBE = null, OT = [], OP = [], SEAC = null, BUB = [], BUBT = 0, ANIMALS = [], LEAVES = [], SHOOTS = [], POOLS = [], BR = [], STALLS = [], SPL = [], SPRIGS = [], TUFTS = [], DELTAS = [], PL = false;
 function sample(W, RAD) {
   const V = [];
   for (const p of W) { const q = V[V.length - 1]; if (q && Math.hypot(p.x - q.x, p.y - q.y) < .5) { if (p.tag) q.tag = p.tag; } else V.push({...p}); }
@@ -235,6 +235,7 @@ function build() {
     sti++; x = nx; prevB = row.bot; lastY = y1;
   });
   if (!F.rw) W.push({x, y: prevB + 30, tag: 'tail'});
+  TUBE = sent && sc && sc.V ? {y1: sent.getBoundingClientRect().top + sy - 6, y2: rbBot - 4} : null;
   const splits = [];
 
   R = sample(W, PL ? 20 : 44);
@@ -441,8 +442,8 @@ function frame(now) {
   ctx.clearRect(0, sy, innerWidth, vh);
   /* the flow passes under the ridge bar while it sits in the hero (once it sticks, its blurred glass covers the flow anyway) */
   ctx.save();
-  /* over the timeline while it sits in the hero; once it sticks as a small glass box, the flow passes under it */
-  const zi = RB && RB.classList.contains('stuck') ? '4' : '6'; if (cv.style.zIndex !== zi) cv.style.zIndex = zi;
+  /* the stream runs underground beneath the timeline while it sits in the hero (see the lava tube below) */
+  if (RB && !RB.classList.contains('stuck')) { const b = RB.getBoundingClientRect(); ctx.beginPath(); ctx.rect(0, sy - 200, innerWidth, vh + 400); ctx.rect(b.left, b.top + sy, b.width, b.height); ctx.clip('evenodd'); }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   const vis = y => y > sy - 90 && y < sy + vh + 90;
   /* visible, revealed index range of a stream between two main-route lengths */
@@ -883,6 +884,36 @@ function frame(now) {
     else { const rr4 = 3 + q.age * 7, sg = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, rr4); sg.addColorStop(0, `rgba(232,234,230,${.16 * a})`); sg.addColorStop(1, 'rgba(232,234,230,0)'); ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(q.x, q.y, rr4, 0, 7); ctx.fill(); }
   }
   ctx.restore();
+  if (TUBE) lavaTube(now, t, dt, vis);
+}
+/* a lava tube: the stream pours into a cave mouth in the ground above the timeline, and wells up out of a vent below it */
+function lavaTube(now, t, dt, vis) {
+  const s = PL ? .8 : 1, flick = reduced ? 1 : .85 + .15 * Math.sin(t * 5.3) * Math.sin(t * 2.1 + 1);
+  const hole = (y, mouth) => {
+    const l = R.lAtY(y), p = atP(l), lit = H >= l - 2 ? (reduced ? 1 : clamp((now - born(l, now)) / 900, 0, 1)) : 0;
+    if (!vis(p.y)) return;
+    const x = p.x, rx = (mouth ? 15 : 9) * s, ry = (mouth ? 5.5 : 3.6) * s;
+    if (lit) {   /* warm light thrown on the ground around it */
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rx * 2.6);
+      g.addColorStop(0, `rgba(255,130,60,${.42 * lit * flick})`); g.addColorStop(1, 'rgba(255,110,40,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, rx * 2.6, rx * 1.4, 0, 0, 7); ctx.fill();
+    }
+    /* rocky lip and a few loose stones */
+    ctx.fillStyle = '#2a2420'; blob(x, y + .6, rx + 3 * s, ry + 2.2 * s, mouth ? 4.1 : 7.3, 0, 1); ctx.fill();
+    for (let k = 0; k < (mouth ? 4 : 3); k++) { const a = (k / (mouth ? 4 : 3)) * Math.PI * 2 + .6, d = rx + 4 * s + hsh(k + y) * 3; ctx.fillStyle = k % 2 ? '#3a322c' : '#241f1b'; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * d, y + Math.sin(a) * d * .35 + 1, (1.4 + hsh(k * 3 + y) * 1.4) * s, 1.1 * s, 0, 0, 7); ctx.fill(); }
+    /* the dark opening, its inner wall lit orange from below */
+    ctx.fillStyle = '#060404'; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.fill();
+    if (lit) {
+      ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.clip();
+      const g2 = ctx.createRadialGradient(x, y + ry * 1.6, 0, x, y + ry * 1.6, rx * 1.1);
+      g2.addColorStop(0, `rgba(255,214,140,${.95 * lit * flick})`); g2.addColorStop(.45, `rgba(240,110,50,${.6 * lit})`); g2.addColorStop(1, 'rgba(120,30,10,0)');
+      ctx.fillStyle = g2; ctx.fillRect(x - rx, y - ry, rx * 2, ry * 2); ctx.restore();
+      ctx.strokeStyle = `rgba(255,170,90,${.75 * lit * flick})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
+      if (O.embers && !reduced && Math.random() < (mouth ? 2.2 : 1.4) * lit * dt) spawn('ember', x + (Math.random() - .5) * rx, y - 1);
+      if (!mouth && O.embers && !reduced && Math.random() < .6 * lit * dt) spawn('steam', x, y - 2);
+    }
+  };
+  hole(TUBE.y1, true); hole(TUBE.y2, false);
 }
 function glyph(x, y, a, s, col) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s); ctx.fillStyle = col;
