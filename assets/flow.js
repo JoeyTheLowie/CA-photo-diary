@@ -156,8 +156,10 @@ function build() {
     const gaps = kids => { for (let k = 1; k < kids.length; k++) { const lo = edgeOf(kids[k - 1], 1), hi = edgeOf(kids[k], -1); if (hi - lo > 3) ch.push({lo, hi, t: 'i', s: 0}); } };
     if (el.classList.contains('stop-head')) freeRight(Math.max(...[...el.children].map(c => textBox(c).right)));
     else if (el.classList.contains('later')) freeRight(textBox(el).right);
-    else if (el.classList.contains('jrow')) gaps([...el.children]);
-    else if (el.classList.contains('mosaic')) gaps([...el.children]);
+    else if (el.classList.contains('jrow') || el.classList.contains('mosaic')) {
+      const k = [...el.children]; gaps(k);
+      if (k.length) { freeLeft(edgeOf(k[0], -1)); freeRight(edgeOf(k[k.length - 1], 1)); }   /* open space beside a photo that doesn't fill the row */
+    }
     else if (el.classList.contains('pull')) { const b = span(el); freeLeft(b.left); freeRight(b.right); }
     else if (el.classList.contains('spread')) { const h = el.querySelector('.h'), b = el.querySelector('.b'); if (h && b) { const lo = span(h).right + 18, hi = span(b).left - 18; if (hi - lo > 20) ch.push({lo, hi, t: 'f', s: 0}); } freeRight(span(el).right); }
     rows.push({kind: el.classList.contains('stop-head') ? 'head' : 'blk', el, top, bot, ch});
@@ -232,7 +234,7 @@ function build() {
     const cur = row.ch.find(q => near(q, x));
     {
       /* a thin gap between rows only allows a short hop (it runs along photo edges), so pick something close by */
-      const reach = tight ? colW * (PL ? .7 : .45) : 1e9;
+      const reach = tight ? colW * (PL ? .8 : .8) : 1e9;   /* along the thin gap between rows, then into the next photo gap */
       const ok = row.ch.filter(q => q === cur || Math.abs(Math.max(q.lo, Math.min(q.hi, x)) - x) < reach);
       const ins = ok.filter(q => q.t === 'i');
       const fr = row.kind === 'head' && row.ch[1].t === 'f' && row.ch[1].hi - row.ch[1].lo > 80 ? row.ch[1] : null;
