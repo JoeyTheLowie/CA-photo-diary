@@ -160,8 +160,28 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .mosaic{display:flex;gap:var(--gap)}
 .mosaic .col{display:flex;flex-direction:column;gap:var(--gap);min-width:0}
 .mosaic .ph{min-height:0;height:auto}
+/* "jump to most recent" under the intro */
+.jump{align-self:flex-start;margin-top:10px;font:600 12px/1 var(--f-text);letter-spacing:.16em;text-transform:uppercase;color:var(--ember);text-decoration:none;padding:8px 0}
+.jump:hover{color:#ff8a5c}.jump:focus-visible{outline:2px solid var(--pumice);outline-offset:4px;border-radius:4px}
+/* scenery flow (assets/flow.js): one line that follows the trip down the page, with a moment where it enters each country */
+#fx{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:4}
+.cdiv{position:relative;height:210px;margin-top:40px}
+.cdiv[data-k=lake1]{height:330px}
+.cdiv[data-k=lake2]{height:250px}
+.cl{position:absolute;left:0;right:0;top:58%;text-align:center}
+.cl b{display:block;font:800 14px/1.2 var(--f-title);letter-spacing:.34em;text-indent:.34em;text-transform:uppercase}
+.cl span{display:block;margin-top:4px;font-size:12px;color:var(--grey)}
+.cdiv[data-k=lake1] b,.cdiv[data-k=lake2] b{color:#8CC9DA}
+.cdiv[data-k=sink] b{color:#8CC58A}
+.end{position:relative;height:320px;margin-top:40px}
+.end .lab{position:absolute;left:0;right:0;top:calc(38% + 30px);text-align:center}
+.end .lab b{display:block;font:800 14px/1.2 var(--f-title);letter-spacing:.34em;text-indent:.34em;text-transform:uppercase}
+.end .lab span{display:block;margin-top:4px;font-size:12px;color:var(--grey)}
+.bye{position:absolute;left:0;right:0;top:calc(38% - 92px);text-align:center;font:600 12px var(--f-text);letter-spacing:.3em;text-indent:.3em;color:var(--grey);opacity:0;transition:opacity 1.2s ease}
+.bye.on{opacity:1}
+@media (max-width:699px){.cdiv{height:190px;margin-top:28px}.cdiv[data-k=lake1]{height:250px}.cdiv[data-k=lake2]{height:220px}}
 /* live preview inside the post page: just the location being edited */
-html.preview .sky,html.preview .topbar,html.preview .intro,html.preview .sentinel,html.preview .rbar,html.preview .stats,html.preview .foot,html.preview .later{display:none!important}
+html.preview #fx,html.preview .sky,html.preview .topbar,html.preview .intro,html.preview .sentinel,html.preview .rbar,html.preview .stats,html.preview .foot,html.preview .later{display:none!important}
 html.preview .stop:first-child{margin-top:0;padding-top:24px}
 html.preview .rows{min-height:240px}
 html.preview .ph{cursor:default}
@@ -174,7 +194,8 @@ html.preview .ph{cursor:default}
 
   <section class="intro">
     <h1>Volcanoes, Jungle, Reef</h1>
-    <p>Seventy-three days from Guatemala to Nicaragua with a Sony A7 IV. Newest photos first. Tap a point on the ridge to jump to that place.</p>
+    <p>Seventy-three days from Guatemala to Nicaragua with a Sony A7 IV. In trip order, oldest first. Tap a point on the ridge to jump to that place.</p>
+    <a class="jump" id="jumpNew" href="#" hidden>Jump to most recent ↓</a>
   </section>
 
   <div class="sentinel" id="sentinel"></div>
@@ -188,6 +209,7 @@ html.preview .ph{cursor:default}
   <main id="stops"></main>
   <section class="stats" id="stats" aria-label="Trip so far"></section>
   <div class="foot"><span>All photos by Joe, shot on a Sony A7 IV.</span><a href="#top" id="toTop">Back to top ↑</a></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
 </div>
 
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
@@ -201,5 +223,6 @@ html.preview .ph{cursor:default}
 </div>
 <script src="assets/app.js" defer></script>
 <script src="assets/scene.js" defer></script>
+<script src="assets/flow.js" defer></script>
 </body>
 </html>

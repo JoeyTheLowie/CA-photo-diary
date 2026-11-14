@@ -1,5 +1,5 @@
 /* Photo diary: reads data/trip.json (route) and data/diary.json (photos + each location's blocks, built by scripts/process.mjs)
-   and renders the ridgeline, the stops (newest first) and the lightbox. */
+   and renders the ridgeline, the stops (oldest first, in trip order) and the lightbox. */
 (function () {
 'use strict';
 const $ = id => document.getElementById(id);
@@ -54,13 +54,13 @@ function render(trip, diary, EDIT) {
   $('dayCount').textContent = dn < 1 ? `Starts in ${1 - dn} day${dn === 0 ? '' : 's'}`
     : dn > TRIP_DAYS ? `${TRIP_DAYS} days, all done` : `Day ${dn} of ${TRIP_DAYS}`;
 
-  /* ---------- locations, newest first. Each location is a list of blocks made on the post page;
+  /* ---------- locations, oldest first (the scenery flow follows the trip down the page). Each location is a list of blocks made on the post page;
      only photos placed in a block are shown. ---------- */
   const host = $('stops'); host.textContent = '';
   const GAP = 8, PAGES = [];
   const byHash = new Map(photos.map(p => [p.hash, p]));
   const hasContent = L => L && L.blocks.some(b => (b.p || []).some(h => h && byHash.has(h)) || (b.h || '').trim() || (b.b || '').trim());
-  const withPhotos = (EDIT ? STOPS.filter(s => s.id === EDIT.stop) : STOPS.filter(s => hasContent(layouts[s.id]))).reverse();
+  const withPhotos = (EDIT ? STOPS.filter(s => s.id === EDIT.stop) : STOPS.filter(s => hasContent(layouts[s.id])));
   const shown = new Set(withPhotos.flatMap(s => layouts[s.id] ? layouts[s.id].blocks.flatMap(b => b.p || []) : []).filter(h => h && byHash.has(h)));
 
   function figure(p, s, caption) {
@@ -184,7 +184,21 @@ function render(trip, diary, EDIT) {
     order.forEach((b, i) => { const el = blockEl(pg, b, Wc, wide, phone, maxH); if (el) { el.dataset.id = b.id || ''; el.dataset.i = i; pg.el.appendChild(el); } });
   }
 
+  /* where the trip enters a new country there's a country moment for the scenery flow (assets/flow.js):
+     Belize lagoon, the Honduran sea, the Nicaraguan sinkhole; and a runway once the trip is over */
+  const PH = [['', ''], ['Belize', 'lake1'], ['Honduras', 'lake2'], ['Nicaragua', 'sink']];
+  const phaseOf = s => { let p = 0; PH.forEach(([c], i) => { if (i && STOPS.findIndex(x => x.country === c) <= STOPS.indexOf(s)) p = i; }); return p; };
+  const divider = p => {
+    const c = PH[p][0], ss = STOPS.filter(x => x.country === c);
+    const d = document.createElement('div'); d.className = 'cdiv'; d.dataset.k = PH[p][1]; d.setAttribute('aria-hidden', 'true');
+    d.innerHTML = `<div class="cl"><b>${esc(c)}</b><span>${fmtRange(D(ss[0].from), D(ss[ss.length - 1].to))}</span></div>`;
+    return d;
+  };
+  let prevPhase = -1;
   withPhotos.forEach(s => {
+    const ph = phaseOf(s);
+    if (!EDIT && prevPhase >= 0 && ph > prevPhase) host.appendChild(divider(ph));
+    prevPhase = ph;
     const sec = document.createElement('section'); sec.className = 'stop'; sec.id = s.id;
     const altTxt = s.peak ? `${s.peak}, ${nf.format(s.alt)} m` : `${nf.format(s.alt)} m`;
     sec.innerHTML = `<div class="stop-head"><h2>${esc(s.name)}</h2><div class="meta">${esc(s.country)}<span class="dot">·</span>${fmtRange(D(s.from), D(s.to))}<span class="dot">·</span>${esc(altTxt)}</div></div>`;
@@ -201,10 +215,22 @@ function render(trip, diary, EDIT) {
   } else if (nextStop) {
     const p = document.createElement('p'); p.className = 'later';
     p.innerHTML = `Next up: <b>${esc(nextStop.name)}</b>, from ${D(nextStop.from).toLocaleDateString('en-GB', {day:'numeric', month:'long'})}.`;
-    host.prepend(p);
+    host.appendChild(p);
+  } else if (!EDIT) {
+    const e = document.createElement('div'); e.className = 'end'; e.id = 'end'; e.setAttribute('aria-hidden', 'true');
+    e.innerHTML = `<div class="bye" id="bye">MGA → AMS</div><div class="lab"><b>${esc(trip.finish.name)}</b><span>${esc(fmtShort(END))} · flying home</span></div>`;
+    host.appendChild(e);
+  }
+  /* "Jump to most recent" under the intro */
+  const jump = $('jumpNew');
+  if (jump) {
+    const secs = host.querySelectorAll('.stop');
+    jump.hidden = secs.length < 2;
+    jump.onclick = e => { e.preventDefault(); const l = host.querySelectorAll('.stop'); if (l.length) l[l.length - 1].scrollIntoView({behavior: reduce() ? 'auto' : 'smooth'}); };
   }
   const layoutAll = force => { PAGES.forEach(pg => layoutPage(pg, force)); if (EDIT && window.__decorate) window.__decorate(); };
   layoutAll(); relayout = () => layoutAll();
+  dispatchEvent(new Event('diary:rendered'));
   document.fonts && document.fonts.ready.then(() => layoutAll(true));
   if (PREVIEW) return;
 
@@ -277,7 +303,7 @@ function render(trip, diary, EDIT) {
       };
       b.addEventListener('mouseenter', show); b.addEventListener('focus', show);
       b.addEventListener('mouseleave', () => tip.classList.remove('on')); b.addEventListener('blur', () => tip.classList.remove('on'));
-      if (home) b.addEventListener('click', () => { const st = document.querySelectorAll('.stop'); if (st.length) st[st.length - 1].scrollIntoView({behavior: reduce() ? 'auto' : 'smooth'}); });
+      if (home) b.addEventListener('click', () => { const st = document.querySelectorAll('.stop'); if (st.length) st[0].scrollIntoView({behavior: reduce() ? 'auto' : 'smooth'}); });
       if (has) b.addEventListener('click', () => document.getElementById(p.s.id).scrollIntoView({behavior: reduce() ? 'auto' : 'smooth'}));
       ridge.appendChild(b);
     });
