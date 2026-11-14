@@ -235,13 +235,17 @@ function build() {
       const reach = tight ? colW * (PL ? .7 : .45) : 1e9;
       const ok = row.ch.filter(q => q === cur || Math.abs(Math.max(q.lo, Math.min(q.hi, x)) - x) < reach);
       const ins = ok.filter(q => q.t === 'i');
-      if (ins.length && rr() < .97) { ins.sort((a, b) => Math.abs((a.lo + a.hi) / 2 - x) - Math.abs((b.lo + b.hi) / 2 - x)); c = ins[rr() < .75 ? 0 : ins.length - 1]; }
+      const fr = row.kind === 'head' && row.ch[1].t === 'f' && row.ch[1].hi - row.ch[1].lo > 80 ? row.ch[1] : null;
+      if (fr) {   /* past a place name: keep going through the open space beside it instead of looping around it */
+        c = fr; const lo = fr.lo + 30, hi = Math.min(fr.hi - 22, colR - 26);
+        nx = hi > lo ? clamp(x + (rr() - .5) * 120, lo, hi) : (fr.lo + fr.hi) / 2;
+      } else if (ins.length && rr() < .97) { ins.sort((a, b) => Math.abs((a.lo + a.hi) / 2 - x) - Math.abs((b.lo + b.hi) / 2 - x)); c = ins[rr() < .75 ? 0 : ins.length - 1]; }
       else {
         const others = ok.filter(q => q.t !== 'i');
         const same = others.find(q => near(q, x));
         c = same && run < 2 && rr() < .55 ? same : (others.filter(q => q !== same)[0] || same || others[0] || cur || row.ch[0]);
       }
-      nx = c === cur && c.t === 'i' ? x : xIn(c);
+      if (!fr) nx = c === cur && c.t === 'i' ? x : xIn(c);
     }
     run = cur && c === cur ? run + 1 : 0;
     let y0 = prevB + m, y1 = row.top - m;
