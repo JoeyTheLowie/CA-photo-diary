@@ -273,6 +273,11 @@ function render(trip, diary, EDIT) {
       return {s, x: X(mid), y: bot - (s.alt / MAX) * (bot - top)};
     }));
     const today = X(Math.min(Math.max(dn - 1, 0), total));
+    { /* "most recent" button: centred between the Guatemala and Honduras peaks */
+      const jb = $('jumpNew'), pk = c => pts.filter(p => p.s.country === c).sort((a, b) => a.y - b.y)[0];
+      const g = pk('Guatemala'), h = pk('Honduras');
+      if (jb) { const cx = g && h ? (g.x + h.x) / 2 : W * .36; jb.style.left = ridge.offsetLeft + cx + 'px'; jb.style.top = ridge.offsetTop + top + (bot - top) * .42 + 'px'; }
+    }
     const sorted = [...pts].sort((a, b) => a.x - b.x);
     let line = `M${pad},${sorted[0].y} L${sorted[0].x},${sorted[0].y}`;
     for (let i = 1; i < sorted.length; i++) { const a = sorted[i - 1], b = sorted[i], mx = (a.x + b.x) / 2; line += ` C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`; }
