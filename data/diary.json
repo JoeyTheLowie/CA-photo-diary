@@ -1,6 +1,126 @@
 {
  "photos": [
   {
+   "id": "20250528-2223-07eaca24",
+   "hash": "07eaca24",
+   "date": "2025-05-28",
+   "time": "22:23",
+   "stop": "antigua",
+   "w": 2048,
+   "h": 1365,
+   "sizes": [
+    640,
+    1280,
+    2048
+   ],
+   "caption": "",
+   "size": "normal",
+   "exif": "50 mm · f/1.2 · 1/2000 s · ISO 100",
+   "batch": "mwgsqg36",
+   "seq": 0,
+   "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoUAA0APt1cpkyopSOiMAgBEBuJYwCw7BxqUPsl5wTl7e3XAADN/W/3yH+SbZ6Pb1Re3TvuYJO2O6thKoj7DkVjfJyFJpHypJhosEZeB6jLFwEXQPTrBuZ2qN+wKtxxXijffyWo630YMrrbVhX2WkAA"
+  },
+  {
+   "id": "20250528-2232-c8a5342f",
+   "hash": "c8a5342f",
+   "date": "2025-05-28",
+   "time": "22:32",
+   "stop": "antigua",
+   "w": 1365,
+   "h": 2048,
+   "sizes": [
+    640,
+    1280,
+    1365
+   ],
+   "caption": "",
+   "size": "normal",
+   "exif": "50 mm · f/1.2 · 1/200 s · ISO 125",
+   "batch": "mwgsqg36",
+   "seq": 1,
+   "lqip": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAAAQBACdASoUAB4APt1ep06opKMiMBgIARAbiWkAACG9a7/imxY+EYv18AD+v5cgpqzVr+77JAs/jD2Y3i6CShVRIAnDp2LKMimaYBeMTAD293fyZ2eexD5CtCWm7n24byuf2KQ9GFFbMEM2dRZ2mAAA"
+  },
+  {
+   "id": "20250528-2246-d7e39403",
+   "hash": "d7e39403",
+   "date": "2025-05-28",
+   "time": "22:46",
+   "stop": "antigua",
+   "w": 2048,
+   "h": 1365,
+   "sizes": [
+    640,
+    1280,
+    2048
+   ],
+   "caption": "",
+   "size": "normal",
+   "exif": "50 mm · f/1.2 · 1/320 s · ISO 400",
+   "batch": "mwgsqg36",
+   "seq": 2,
+   "lqip": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAADwAwCdASoUAA0APt1apkyopSOiMAgBEBuJaQAAVQEHyftngH+74LMAAP7svY/PyBjzLPaJT+jXf3FclIUhUwujAxQsqlOrOLz0VS0jOsPQvCyx4ep9Oy5gX9lKvKJ9XqfC0SRPoaeMd9AA"
+  },
+  {
+   "id": "20250528-2303-0aba65f7",
+   "hash": "0aba65f7",
+   "date": "2025-05-28",
+   "time": "23:03",
+   "stop": "antigua",
+   "w": 2048,
+   "h": 1365,
+   "sizes": [
+    640,
+    1280,
+    2048
+   ],
+   "caption": "",
+   "size": "normal",
+   "exif": "50 mm · f/1.6 · 1/125 s · ISO 1250",
+   "batch": "mwgsqg36",
+   "seq": 3,
+   "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAACwAwCdASoUAA0APt1cpkyopSOiMAgBEBuJaQAAN5AkDYVYcYNSAAD3gwaPODph/VYnRxNplu3KlxcP2ZgltPSMAvy2ZJSsrJa3DqcWm4IV2Elyl1mlm8ZdxAAAAA=="
+  },
+  {
+   "id": "20250529-0445-0412800e",
+   "hash": "0412800e",
+   "date": "2025-05-29",
+   "time": "04:45",
+   "stop": "antigua",
+   "w": 2048,
+   "h": 1365,
+   "sizes": [
+    640,
+    1280,
+    2048
+   ],
+   "caption": "",
+   "size": "normal",
+   "exif": "50 mm · f/1.2 · 1/2000 s · ISO 125",
+   "batch": "mwgsqg36",
+   "seq": 4,
+   "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoUAA0APt1apkyopSOiMAgBEBuJYgC/OCFdbH9acOU6iPR0AAD+6NUmrisd2dI5Ncjt0fnz1q/XTzaEKiuHeKWJKO7uRohvUQw9Gbh2OxPx6R/CsdEITKLieHxtZJaW/PlnFpWBwwh/n+4XthkIAAAA"
+  },
+  {
+   "id": "20250529-0450-89df4a81",
+   "hash": "89df4a81",
+   "date": "2025-05-29",
+   "time": "04:50",
+   "stop": "antigua",
+   "w": 2048,
+   "h": 1365,
+   "sizes": [
+    640,
+    1280,
+    2048
+   ],
+   "caption": "",
+   "size": "normal",
+   "exif": "50 mm · f/1.2 · 1/800 s · ISO 125",
+   "batch": "mwgsqg36",
+   "seq": 5,
+   "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAADwAwCdASoUAA0APt1cpkyopSOiMAgBEBuJYwDCgBeYyU/WGBg1tGKAAP70MseOVNsvNRyVsMhibtWRzw/CSpJjHvrcTK3ZfuyTO5A//OehgmQX8YLaWD1YQbWr9T9LIjNZzvWxZOdN0HbAyAA="
+  },
+  {
    "id": "20261022-2109-572a7f83",
    "hash": "572a7f83",
    "date": "2026-10-22",
@@ -218,6 +338,29 @@
      "p": [
       null
      ]
+    }
+   ],
+   "captions": {}
+  },
+  "xela": {
+   "blocks": [
+    {
+     "id": "wkmr7l",
+     "t": "row",
+     "p": [
+      "c8a5342f",
+      "07eaca24"
+     ]
+    },
+    {
+     "id": "f4xi1z",
+     "t": "photo-text",
+     "p": [
+      "0aba65f7"
+     ],
+     "side": "right",
+     "h": "",
+     "b": ""
     }
    ],
    "captions": {}
