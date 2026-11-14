@@ -81,7 +81,7 @@ function corridor(C, inside, CAP) {
   return {A: sm(ra), B: sm(rb)};
 }
 /* push the centre line sideways by noise, using the room on whichever side it heads to */
-function wander(C, cor, noise, lw) {
+function wander(C, cor, noise, lw, kcap) {
   const n = C.n, PX = new Float32Array(n), PY = new Float32Array(n), PTX = new Float32Array(n), PTY = new Float32Array(n), OFF = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     const z = noise(i), o = z > 0 ? z * Math.max(0, cor.A[i] - lw) : z * Math.max(0, cor.B[i] - lw);
@@ -91,7 +91,7 @@ function wander(C, cor, noise, lw) {
   const K = 13, tx = new Float32Array(n), ty = new Float32Array(n);
   for (let pass = 0; pass < 3; pass++) {
     for (let i = 0; i < n; i++) {
-      const k = Math.min(K, i, n - 1 - i); let sx = 0, syy = 0;
+      const k = Math.min(K, i, n - 1 - i, kcap ? kcap(i) : K); let sx = 0, syy = 0;
       for (let j = i - k; j <= i + k; j++) { sx += PX[j]; syy += PY[j]; }
       tx[i] = sx / (2 * k + 1); ty[i] = syy / (2 * k + 1);
     }
@@ -286,7 +286,11 @@ function build() {
     if (l < S.skA) return waterN(l) * .92;
     const free = vineN(l) * .85, sd = cor.A[i] < cor.B[i] ? 1 : -1, hug = sd * (Math.min(cor.A[i], cor.B[i]) - 1.5) / Math.max(1, sd > 0 ? cor.A[i] - lw : cor.B[i] - lw);
     return lerp(free, clamp(hug, -1.2, 1.2), HUG[i]);
-  }, lw);
+  }, lw, i => {   /* no smoothing on the lagoon, sea, sinkhole and runway, so the stream meets them exactly */
+    const l = R.L[i]; let d = 1e9;
+    for (const [a, b] of [[S.l1A, S.l1B], [S.l2A, S.l2B], [S.skA, S.skB], [S.rwA, S.rwB]]) if (a < 1e8) d = Math.min(d, l < a ? a - l : l > b ? l - b : 0);
+    return Math.floor(d / 4);
+  });
   MAIN.cor = cor; MAIN.toMain = l => l;
 
   /* forks: their own wandering channels, timed so both arms reach the rejoin together */
