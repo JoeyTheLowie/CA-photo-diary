@@ -177,9 +177,9 @@ function build() {
   if (sc && sc.V) {
     const V = sc.V, s0 = sc.s || 1, Gd = sc.G, xMax = edgeR - 22;
     /* from the crater straight down the face, drifting right and wandering a little, always inside the cone */
-    for (let k = 0; k <= 24; k++) {
-      const u = k / 24, y = lerp(V.y + 5, Gd - 2, u);
-      let px = Math.min(xMax, V.x + V.cw * .1 + V.bw * .45 * Math.pow(u, 1.25) + Math.sin(u * 10 + .5) * 7 * s0 * u * (1 - u * .5));
+    for (let k = 0; k <= 40; k++) {
+      const u = k / 40, y = lerp(V.y + 5, Gd - 2, u);
+      let px = Math.min(xMax, V.x + V.cw * .1 + V.bw * .45 * Math.pow(u, 1.25) + (Math.sin(u * 9 + .5) * 15 + Math.sin(u * 23 + 1) * 4) * s0 * Math.sqrt(u) * (1 - u * .4));
       while (px > V.x && sc.profileY(px) > y - 5 * s0) px -= 1;
       W.push({x: px, y});
     }
@@ -235,7 +235,7 @@ function build() {
     sti++; x = nx; prevB = row.bot; lastY = y1;
   });
   if (!F.rw) W.push({x, y: prevB + 30, tag: 'tail'});
-  TUBE = sent && sc && sc.V ? {y1: sent.getBoundingClientRect().top + sy - 6, y2: rbBot - 4} : null;
+  TUBE = sent && sc && sc.V ? {y1: sent.getBoundingClientRect().top + sy - 6, y2: rbBot + 8} : null;
   const splits = [];
 
   R = sample(W, PL ? 20 : 44);
@@ -443,7 +443,7 @@ function frame(now) {
   /* the flow passes under the ridge bar while it sits in the hero (once it sticks, its blurred glass covers the flow anyway) */
   ctx.save();
   /* the stream runs underground beneath the timeline while it sits in the hero (see the lava tube below) */
-  if (RB && !RB.classList.contains('stuck')) { const b = RB.getBoundingClientRect(); ctx.beginPath(); ctx.rect(0, sy - 200, innerWidth, vh + 400); ctx.rect(b.left, b.top + sy, b.width, b.height); ctx.clip('evenodd'); }
+  if (TUBE) { const xv = atP(R.lAtY(TUBE.y2)).x; ctx.beginPath(); ctx.rect(0, sy - 200, innerWidth, vh + 400); ctx.rect(xv - 30, TUBE.y1 + 2, 60, TUBE.y2 - TUBE.y1 - 3); ctx.clip('evenodd'); }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   const vis = y => y > sy - 90 && y < sy + vh + 90;
   /* visible, revealed index range of a stream between two main-route lengths */
@@ -886,37 +886,86 @@ function frame(now) {
   ctx.restore();
   if (TUBE) lavaTube(now, t, dt, vis);
 }
-/* a lava tube: the stream pours into a cave mouth in the ground above the timeline, and wells up out of a vent below it */
+/* a lava tube: the stream pours over the lip of a cave mouth in the ground above the timeline,
+   runs underground, and comes back out of the arched mouth of a rocky outcrop below it */
 function lavaTube(now, t, dt, vis) {
   const s = PL ? .8 : 1, flick = reduced ? 1 : .85 + .15 * Math.sin(t * 5.3) * Math.sin(t * 2.1 + 1);
-  const hole = (y, mouth) => {
-    const l = R.lAtY(y), p = atP(l), lit = H >= l - 2 ? (reduced ? 1 : clamp((now - born(l, now)) / 900, 0, 1)) : 0;
-    if (!vis(p.y)) return;
-    const x = p.x, rx = (mouth ? 15 : 9) * s, ry = (mouth ? 5.5 : 3.6) * s;
-    if (lit) {   /* warm light thrown on the ground around it */
-      /* an elliptical pool of light that fades all the way out, no edge */
-      const Rg = rx * 3.2, a0 = .26 * lit * flick;
-      ctx.save(); ctx.translate(x, y); ctx.scale(1, .5);
-      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, Rg);
-      g.addColorStop(0, `rgba(255,130,60,${a0})`); g.addColorStop(.35, `rgba(255,120,50,${a0 * .45})`); g.addColorStop(.7, `rgba(255,110,40,${a0 * .12})`); g.addColorStop(1, 'rgba(255,110,40,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, Rg, 0, 7); ctx.fill(); ctx.restore();
-    }
-    /* rocky lip and a few loose stones */
-    ctx.fillStyle = '#2a2420'; blob(x, y + .6, rx + 3 * s, ry + 2.2 * s, mouth ? 4.1 : 7.3, 0, 1); ctx.fill();
-    for (let k = 0; k < (mouth ? 4 : 3); k++) { const a = (k / (mouth ? 4 : 3)) * Math.PI * 2 + .6, d = rx + 4 * s + hsh(k + y) * 3; ctx.fillStyle = k % 2 ? '#3a322c' : '#241f1b'; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * d, y + Math.sin(a) * d * .35 + 1, (1.4 + hsh(k * 3 + y) * 1.4) * s, 1.1 * s, 0, 0, 7); ctx.fill(); }
-    /* the dark opening, its inner wall lit orange from below */
-    ctx.fillStyle = '#060404'; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.fill();
-    if (lit) {
-      ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.clip();
-      const g2 = ctx.createRadialGradient(x, y + ry * 1.6, 0, x, y + ry * 1.6, rx * 1.1);
-      g2.addColorStop(0, `rgba(255,214,140,${.8 * lit * flick})`); g2.addColorStop(.45, `rgba(240,110,50,${.5 * lit})`); g2.addColorStop(1, 'rgba(120,30,10,0)');
-      ctx.fillStyle = g2; ctx.fillRect(x - rx, y - ry, rx * 2, ry * 2); ctx.restore();
-      ctx.strokeStyle = `rgba(255,170,90,${.5 * lit * flick})`; ctx.lineWidth = .9; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
-      if (O.embers && !reduced && Math.random() < (mouth ? 2.2 : 1.4) * lit * dt) spawn('ember', x + (Math.random() - .5) * rx, y - 1);
-      if (!mouth && O.embers && !reduced && Math.random() < .6 * lit * dt) spawn('steam', x, y - 2);
-    }
+  const litAt = l => H >= l - 2 ? (reduced ? 1 : clamp((now - born(l, now)) / 900, 0, 1)) : 0;
+  const pool = (x, y, R, a0) => {   /* soft elliptical light on the ground, fading to nothing */
+    ctx.save(); ctx.translate(x, y); ctx.scale(1, .5);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+    g.addColorStop(0, `rgba(255,130,60,${a0})`); g.addColorStop(.35, `rgba(255,120,50,${a0 * .45})`); g.addColorStop(.7, `rgba(255,110,40,${a0 * .12})`); g.addColorStop(1, 'rgba(255,110,40,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill(); ctx.restore();
   };
-  hole(TUBE.y1, true); hole(TUBE.y2, false);
+  const hot = (a) => `rgba(255,${Math.round(150 + 60 * a)},${Math.round(70 + 60 * a)},1)`;
+
+  /* ---- the way in: a pit with a rocky rim; the lava tips over the back lip and drops into the dark ---- */
+  {
+    const y = TUBE.y1, l = R.lAtY(y), p = atP(l), lit = litAt(l - 14), x = p.x, rx = 15 * s, ry = 5.5 * s;
+    if (vis(y)) {
+      if (lit) pool(x, y, rx * 3.2, .26 * lit * flick);
+      ctx.fillStyle = '#2a2420'; blob(x, y + .6, rx + 3 * s, ry + 2.2 * s, 4.1, 0, 1); ctx.fill();
+      for (let k = 0; k < 4; k++) { const a = (k / 4) * Math.PI * 2 + .6, d = rx + 4 * s + hsh(k + 3) * 3; ctx.fillStyle = k % 2 ? '#3a322c' : '#241f1b'; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * d, y + Math.sin(a) * d * .35 + 1, (1.4 + hsh(k * 3 + 1) * 1.4) * s, 1.1 * s, 0, 0, 7); ctx.fill(); }
+      ctx.fillStyle = '#060404'; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.fill();
+      if (lit) {
+        /* glow from deep inside */
+        ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.clip();
+        const g2 = ctx.createRadialGradient(x, y + ry * 1.4, 0, x, y + ry * 1.4, rx);
+        g2.addColorStop(0, `rgba(255,190,110,${.7 * lit * flick})`); g2.addColorStop(.5, `rgba(230,100,45,${.35 * lit})`); g2.addColorStop(1, 'rgba(120,30,10,0)');
+        ctx.fillStyle = g2; ctx.fillRect(x - rx, y - ry, rx * 2, ry * 2);
+        /* the stream curls over the back lip and falls in, narrowing as it drops out of sight */
+        const q = atP(R.lAtY(y - ry - 8)), x0 = q.x, y0 = y - ry - 8;
+        ctx.save(); ctx.shadowColor = 'rgba(255,120,50,.9)'; ctx.shadowBlur = 8 * lit;
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.bezierCurveTo(x0, y - ry + 1, x + (x0 - x) * .3, y - ry * .2, x, y + ry * .9);
+        ctx.strokeStyle = hot(flick); ctx.lineWidth = 2.6 * s * lit; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.bezierCurveTo(x0, y - ry + 1, x + (x0 - x) * .3, y - ry * .2, x, y + ry * .9);
+        ctx.strokeStyle = `rgba(255,236,190,${.8 * lit})`; ctx.lineWidth = 1 * s; ctx.stroke(); ctx.restore();
+        ctx.restore();
+        /* the part on the back lip, outside the opening */
+        ctx.save(); ctx.shadowColor = 'rgba(255,120,50,.8)'; ctx.shadowBlur = 6 * lit;
+        ctx.beginPath(); ctx.moveTo(x0, y0 - 4); ctx.quadraticCurveTo(x0, y - ry - 2, x0 + (x - x0) * .15, y - ry + .5);
+        ctx.strokeStyle = hot(flick); ctx.lineWidth = 2.8 * s * lit; ctx.stroke(); ctx.restore();
+        /* front rim catches a little light; sparks */
+        ctx.strokeStyle = `rgba(255,160,90,${.35 * lit * flick})`; ctx.lineWidth = .9; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+        if (O.embers && !reduced && Math.random() < 2.2 * lit * dt) spawn('ember', x + (Math.random() - .5) * rx, y - 1);
+      }
+    }
+  }
+
+  /* ---- the way out: a low mound of broken rock (the roof of the tube) with an arched mouth; the lava spills out of it ---- */
+  {
+    const y = TUBE.y2, l = R.lAtY(y), p = atP(l), lit = litAt(l), x = p.x;
+    if (vis(y)) {
+      const w = 19 * s, h = 15 * s, top = y - h;
+      if (lit) pool(x, y + 3, w * 2.4, .2 * lit * flick);
+      /* the mound: stacked, cracked basalt slabs */
+      ctx.fillStyle = '#29231f';
+      ctx.beginPath(); ctx.moveTo(x - w, y + 2 * s);
+      ctx.bezierCurveTo(x - w * .95, top + h * .35, x - w * .45, top - 1, x - w * .05, top + .5);
+      ctx.bezierCurveTo(x + w * .4, top - 1.5, x + w * .95, top + h * .4, x + w, y + 2 * s);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(80,68,58,.9)'; ctx.lineWidth = .9;
+      for (const [a, b, c, d] of [[-.8, .55, -.35, .35], [-.2, .2, .35, .3], [.3, .55, .75, .6], [-.55, .82, -.15, .75]]) { ctx.beginPath(); ctx.moveTo(x + a * w, top + b * h); ctx.lineTo(x + c * w, top + d * h); ctx.stroke(); }
+      ctx.strokeStyle = 'rgba(120,104,90,.55)'; ctx.beginPath(); ctx.moveTo(x - w * .5, top + h * .12); ctx.quadraticCurveTo(x, top - 1.2, x + w * .5, top + h * .14); ctx.stroke();   /* lit top edge */
+      for (let k = 0; k < 4; k++) { const a = k < 2 ? -1 : 1, d = w + (1 + k % 2 * 3) * s; ctx.fillStyle = k % 2 ? '#3a322c' : '#211c18'; ctx.beginPath(); ctx.ellipse(x + a * d, y + 1.5 * s, (1.6 + hsh(k * 5 + 2) * 1.4) * s, 1.2 * s, 0, 0, 7); ctx.fill(); }
+      /* the arched mouth at the foot of the mound */
+      const ax = 7 * s, ay = 7.5 * s;
+      ctx.fillStyle = '#060404'; ctx.beginPath(); ctx.moveTo(x - ax, y + 1); ctx.quadraticCurveTo(x - ax, y - ay, x, y - ay); ctx.quadraticCurveTo(x + ax, y - ay, x + ax, y + 1); ctx.closePath(); ctx.fill();
+      if (lit) {
+        ctx.save(); ctx.beginPath(); ctx.moveTo(x - ax, y + 1); ctx.quadraticCurveTo(x - ax, y - ay, x, y - ay); ctx.quadraticCurveTo(x + ax, y - ay, x + ax, y + 1); ctx.closePath(); ctx.clip();
+        const g3 = ctx.createRadialGradient(x, y + 1, 0, x, y + 1, ay * 1.2);
+        g3.addColorStop(0, `rgba(255,200,120,${.85 * lit * flick})`); g3.addColorStop(.6, `rgba(220,90,40,${.4 * lit})`); g3.addColorStop(1, 'rgba(90,20,10,0)');
+        ctx.fillStyle = g3; ctx.fillRect(x - ax, y - ay, ax * 2, ay + 2); ctx.restore();
+        /* lava spilling over the threshold and on down the slope */
+        ctx.save(); ctx.shadowColor = 'rgba(255,120,50,.85)'; ctx.shadowBlur = 7 * lit;
+        ctx.fillStyle = hot(flick); blob(x, y + 1.2, ax * .75, 2.2 * s, 1.7); ctx.fill();
+        ctx.restore();
+        ctx.strokeStyle = `rgba(255,170,100,${.45 * lit * flick})`; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(x - ax, y + 1); ctx.quadraticCurveTo(x - ax, y - ay, x, y - ay); ctx.quadraticCurveTo(x + ax, y - ay, x + ax, y + 1); ctx.stroke();
+        if (O.embers && !reduced && Math.random() < 1.2 * lit * dt) spawn('ember', x + (Math.random() - .5) * ax, y - 1);
+        if (O.embers && !reduced && Math.random() < .5 * lit * dt) spawn('steam', x, y - ay - 2);
+      }
+    }
+  }
 }
 function glyph(x, y, a, s, col) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s); ctx.fillStyle = col;
