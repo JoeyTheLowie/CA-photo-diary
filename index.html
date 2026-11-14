@@ -164,8 +164,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .mosaic .col{display:flex;flex-direction:column;gap:var(--gap);min-width:0}
 .mosaic .ph{min-height:0;height:auto}
 /* "jump to most recent" under the intro */
-.jump{align-self:flex-start;margin-top:10px;font:600 12px/1 var(--f-text);letter-spacing:.16em;text-transform:uppercase;color:var(--ember);text-decoration:none;padding:8px 0}
-.jump:hover{color:#ff8a5c}.jump:focus-visible{outline:2px solid var(--pumice);outline-offset:4px;border-radius:4px}
+.rbar-in{position:relative}
+.jump{position:absolute;z-index:2;left:28%;top:calc(12px + 26%);display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font:600 12px/1 var(--f-text);letter-spacing:.14em;text-transform:uppercase;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;background:var(--ember);box-shadow:0 6px 20px rgba(232,98,58,.28);transition:background .15s,transform .15s}
+.jump:hover{background:#ff7a4c;transform:translateY(-1px)}
+.rbar .jump{transition:background .15s,transform .15s,opacity .2s}.rbar.stuck .jump{opacity:0;pointer-events:none}
+@media (max-width:699px){.jump{left:24%;top:calc(12px + 38%);font-size:10px;padding:9px 13px;letter-spacing:.1em}.jump .jw{display:none}}.jump:active{transform:none}.jump:focus-visible{outline:2px solid var(--pumice);outline-offset:4px;border-radius:4px}
 /* scenery flow (assets/flow.js): one line that follows the trip down the page, with a moment where it enters each country */
 #fx{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:4}
 .cdiv{position:relative;height:210px;margin-top:40px}
@@ -198,12 +201,12 @@ html.preview .ph{cursor:default}
   <section class="intro">
     <h1>Volcanoes, Jungle, Reef</h1>
     <p>Seventy-three days from Guatemala to Nicaragua with a Sony A7 IV. In trip order, oldest first. Tap a point on the ridge to jump to that place.</p>
-    <a class="jump" id="jumpNew" href="#" hidden>Jump to most recent ↓</a>
   </section>
 
   <div class="sentinel" id="sentinel"></div>
   <div class="rbar" id="rbar">
     <div class="rbar-in">
+      <a class="jump" id="jumpNew" href="#" hidden><span class="jw">Jump to </span>most recent ↓</a>
       <div class="ridge" id="ridge" aria-label="Route by altitude, from Amsterdam to Managua."></div>
       <div class="ridge-row" id="ridgeRow"></div>
     </div>
