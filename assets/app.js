@@ -265,7 +265,7 @@ function render(trip, diary, EDIT) {
   }
   function drawRidge() {
     const stuck = $('rbar').classList.contains('stuck');
-    const W = ridge.clientWidth, H = ridge.clientHeight, top = 34, bot = H - 10, MAX = 4400, pad = 10;
+    const W = ridge.clientWidth, H = ridge.clientHeight, top = stuck ? 24 : 34, bot = H - (stuck ? 6 : 10), MAX = 4400, pad = 10;
     const total = dayNo(END) - 1;
     const X = d => pad + (d / total) * (W - 2 * pad);
     const pts = [{s: HOME, x: X(0), y: bot}].concat(STOPS.map(s => {
@@ -334,7 +334,12 @@ function render(trip, diary, EDIT) {
   /* stuck = the bar has reached its sticky position (the sentinel just above it has scrolled past that line) */
   const sentinel = $('sentinel'); let sq = false;
   const checkStuck = () => { sq = false; const st = sentinel.getBoundingClientRect().top < parseFloat(getComputedStyle(rbar).top) - .5;
-    if (st !== rbar.classList.contains('stuck')) { rbar.classList.toggle('stuck', st); drawRidge(); } };
+    if (st !== rbar.classList.contains('stuck')) {
+      /* stuck, the bar shrinks to a compact box; a bottom margin keeps the page below from jumping */
+      const h0 = st ? rbar.offsetHeight : 0;
+      rbar.classList.toggle('stuck', st); rbar.style.marginBottom = st ? Math.max(0, h0 - rbar.offsetHeight) + 'px' : '';
+      drawRidge();
+    } };
   addEventListener('scroll', () => { if (!sq) { sq = true; requestAnimationFrame(checkStuck); } }, {passive: true});
   addEventListener('resize', checkStuck); checkStuck();
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawRidge, 120); });

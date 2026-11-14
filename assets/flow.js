@@ -171,14 +171,17 @@ function build() {
 
   /* the start: one lava stream from the hero volcano's own crater, down its right flank, under the ridge bar */
   const sc = window.__scene, rbar = $('#rbar'), sent = $('#sentinel');
-  const rbBot = sent ? sent.getBoundingClientRect().top + sy + (rbar ? rbar.offsetHeight : 0) + 12 : 0;
+  const rbBot = sent ? sent.getBoundingClientRect().top + sy + (rbar ? rbar.offsetHeight + (parseFloat(rbar.style.marginBottom) || 0) : 0) + 12 : 0;
   const W = [];
   let x;
   if (sc && sc.V) {
     const V = sc.V, s0 = sc.s || 1, Gd = sc.G, xMax = edgeR - 22;
-    for (let k = 0; k <= 12; k++) {
-      const u = k / 12, px = Math.min(xMax, V.x + V.cw * .35 + u * V.bw * .62 + Math.sin(u * 8) * 4 * s0 * u);
-      W.push({x: px, y: Math.min(Gd - 2, Math.max(V.y + 4, sc.profileY(px) + (4 + u * 20) * s0))});
+    /* from the crater straight down the face, drifting right and wandering a little, always inside the cone */
+    for (let k = 0; k <= 24; k++) {
+      const u = k / 24, y = lerp(V.y + 5, Gd - 2, u);
+      let px = Math.min(xMax, V.x + V.cw * .1 + V.bw * .45 * Math.pow(u, 1.25) + Math.sin(u * 10 + .5) * 7 * s0 * u * (1 - u * .5));
+      while (px > V.x && sc.profileY(px) > y - 5 * s0) px -= 1;
+      W.push({x: px, y});
     }
     x = W[W.length - 1].x;
     for (let k = 1; k < W.length; k++) if (W[k].y < W[k - 1].y + 1) W[k].y = W[k - 1].y + 1;
@@ -406,12 +409,17 @@ function frame(now) {
   /* where the flow should be, and where it actually gets to */
   let T = R.lAtY(sy + vh * .66);
   if (O.reveal === 'drawn' || reduced) T = R.tot; else if (O.reveal === 'once') { Tmax = Math.max(Tmax, T); T = Tmax; }
+  /* the stream is born in the volcano's first big eruption (assets/scene.js, about 3 s in) */
+  const sc = window.__scene, away = sy > S.h0 * .4;
+  if (!reduced && O.reveal !== 'drawn' && sc && sc.T < 3.1 && !away) T = 0;
+  else T = Math.max(T, S.h0 + 30);   /* once born it runs all the way down the cone and past the timeline */
   let Hn = H;
   const surge = STALLS.some(s => s.rel && now - s.rel < 600) ? 3 : 1;
   if (reduced) Hn = T;
   else {
     Hn += (T - H) * (1 - Math.exp(-dt * 2.4 * surge));
     if (Hn > S.skB && Hn < S.rwA && Hn > H) Hn = Math.min(Hn, H + Math.max(200, (T - H) * 1.2) * dt);
+    if (Hn < S.h0 && Hn > H) Hn = Math.min(Hn, H + S.h0 / (away ? 1.6 : 4.5) * dt);   /* it takes a few seconds to run down the cone */
     if (Math.abs(T - Hn) < .3) Hn = T;
     if (Hn >= T - 1 && Hn > S.skB + 20 && Hn < S.rwA - 90) Hn = Math.min(Hn + 7 * dt, T + 70);
     for (const s of STALLS) {
@@ -433,7 +441,8 @@ function frame(now) {
   ctx.clearRect(0, sy, innerWidth, vh);
   /* the flow passes under the ridge bar while it sits in the hero (once it sticks, its blurred glass covers the flow anyway) */
   ctx.save();
-  if (RB && !RB.classList.contains('stuck')) { const b = RB.getBoundingClientRect(); ctx.beginPath(); ctx.rect(0, sy - 200, innerWidth, vh + 400); ctx.rect(b.left, b.top + sy, b.width, b.height); ctx.clip('evenodd'); }
+  /* over the timeline while it sits in the hero; once it sticks as a small glass box, the flow passes under it */
+  const zi = RB && RB.classList.contains('stuck') ? '4' : '6'; if (cv.style.zIndex !== zi) cv.style.zIndex = zi;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   const vis = y => y > sy - 90 && y < sy + vh + 90;
   /* visible, revealed index range of a stream between two main-route lengths */
