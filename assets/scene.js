@@ -199,5 +199,6 @@
   else{frame();new IntersectionObserver(([e])=>{visible=e.isIntersecting;visible?play():pause()}).observe(wrap);document.addEventListener('visibilitychange',()=>document.hidden?pause():play());play()}
   let rt;const re=()=>{clearTimeout(rt);rt=setTimeout(()=>{layout();bombs=[];flows=[];if(still)stillFrame();else frame()},120)};
   addEventListener('resize',re);document.fonts&&document.fonts.ready.then(re);
-  window.__scene={step,frame,get T(){return T}};
+  window.__scene={step,frame,get T(){return T},get V(){return V},get G(){return G},get H(){return H},get s(){return s},profileY};
+  dispatchEvent(new Event('scene:layout'));
 })();

@@ -53,7 +53,7 @@ All of these can be done in the GitHub app or on github.com, then the site rebui
 
 - `post/` is the editor. It shows the real site in a frame (`index.html?preview&edit`, with `assets/editor.js`) and commits photos to `inbox/`, a location's blocks to `layouts/<location>.json` and deletions to `trash/`.
 - `.github/workflows/publish.yml` runs `scripts/process.mjs` on every push. It makes AVIF versions at 640, 1280 and 2048 px, a JPEG fallback and a tiny blurred placeholder in `img/`, adds the photo to `data/diary.json`, empties `inbox/`, and publishes the site to GitHub Pages.
-- `index.html` reads `data/trip.json` and `data/diary.json`. Locations are shown newest first, each as its list of blocks; only placed photos are shown.
+- `index.html` reads `data/trip.json` and `data/diary.json`. Locations are shown oldest first (trip order), with a "Jump to most recent" link under the intro, each as its list of blocks; only placed photos are shown.
 - Preview the site as on any day of the trip with `?today=2026-12-18` at the end of the address.
 
 Please don't upload photos straight into the repository through github.com: those would keep their location data in the history. Use the post page.
