@@ -923,9 +923,11 @@ function tunnels(now, t, dt, vis) {
   const hot = a => `rgba(255,${Math.round(150 + 60 * a)},${Math.round(70 + 60 * a)},1)`;
   const stones = (x, y, r, n, sd, s) => { for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2 + .6 + sd, d = r + (3 + hsh(k + sd) * 3) * s; ctx.fillStyle = k % 2 ? '#3a322c' : '#241f1b'; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * d, y + Math.sin(a) * d * .35 + 1, (1.3 + hsh(k * 3 + sd) * 1.4) * s, 1.05 * s, 0, 0, 7); ctx.fill(); } };
   /* the stream curling over a lip and down into an opening at (x, y) */
+  let PT = {tx: 0, ty: 1};
   const pour = (x0, y0, x, y, ry, col, glow, w, lit) => {
     ctx.save(); if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 7 * lit; }
-    ctx.beginPath(); ctx.moveTo(x0, y0 - 4); ctx.bezierCurveTo(x0, y - ry + 1, x + (x0 - x) * .3, y - ry * .2, x, y + ry * .8);
+    const d = Math.max(4, (y - y0) * .45);   /* leaves the stream along its own direction, so there's no kink */
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.bezierCurveTo(x0 + PT.tx * d, y0 + PT.ty * d, x + (x0 - x) * .2, y - ry * .6, x, y + ry * .8);
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); ctx.restore();
   };
 
@@ -933,9 +935,10 @@ function tunnels(now, t, dt, vis) {
     const s = tb.sc * (PL ? .8 : 1);
     /* ---------- the way in ---------- */
     {
-      const y = tb.y1, l = R.lAtY(y), mat = matAt(l), p = atP(l), lit = litAt(l - 14), x = p.x;
+      const y = tb.y1, l = R.lAtY(y), mat = matAt(l), p = atP(l), lit = litAt(l - 14);
+      let x = p.x; { const C = MAIN.C; let bd = 1e9; for (let i = Math.max(0, C.iY(y - 80)), e = Math.min(C.n - 1, C.iY(y + 80)); i <= e; i++) { const d = Math.abs(MAIN.PY[i] - y); if (d < bd) { bd = d; x = MAIN.PX[i]; } } }   /* where the drawn line really reaches the hole */
       if (mat && vis(y)) {
-        const q = atP(R.lAtY(y - 14 * s)), x0 = q.x, y0 = y - 12 * s;
+        const q = atP(R.lAtY(y - 20 * s)), x0 = q.x, y0 = q.y; PT = q;
         if (mat === 'lava') {
           const rx = 15 * s, ry = 5.5 * s;
           if (lit) pool(x, y, rx * 3.2, .24 * lit * flick);
