@@ -21,7 +21,14 @@ if (PREVIEW) {
   document.documentElement.classList.add('preview');
   const editor = /[?&]edit/.test(location.search) ? new Promise(res => { const s = document.createElement('script'); s.src = 'assets/editor.js'; s.onload = s.onerror = res; document.head.appendChild(s); }) : null;
   Promise.all([fetch('data/trip.json', noCache).then(r => r.json()), editor]).then(([trip]) => {
-    addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.diary) { window.__edit = e.data.edit || null; render(trip, e.data.diary, e.data.edit || null); } });
+    addEventListener('message', e => {
+      if (!(e.origin === location.origin && e.data && e.data.diary)) return;
+      /* keep the editor where it was: re-rendering briefly empties the page, which used to throw it back to the top */
+      const y = scrollY, st = document.getElementById('stops'); if (st) st.style.minHeight = st.offsetHeight + 'px';
+      window.__edit = e.data.edit || null; render(trip, e.data.diary, e.data.edit || null);
+      const keep = () => scrollTo({top: Math.min(y, document.documentElement.scrollHeight - innerHeight), behavior: 'instant'});
+      keep(); requestAnimationFrame(() => { if (st) st.style.minHeight = ''; keep(); });
+    });
     parent.postMessage({previewReady: true}, location.origin);
   });
 } else Promise.all([
@@ -156,10 +163,10 @@ function render(trip, diary, EDIT) {
       const note = textOf(false), right = b.side === 'right';
       if (!note._len) { if (!spots.length) return null; sideBySide(spots); return el; }
       if (!spots.length) { note.className = standalone(note); add(note); return el; }
-      if (wide) {
+      if (wide || note._len <= 320) {   /* phones too: text beside the photo, like on desktop (only very long text drops below) */
         const sum = spots.reduce((a, x) => a + ar(x.p), 0);
         note.className = 'note tile' + (right ? ' right' : '');
-        const tile = {tile: true, el: note, w: Math.min(note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, Math.max(.6, sum * .75))};
+        const tile = {tile: true, el: note, w: wide ? Math.min(note._len <= 110 ? .8 : note._len <= 260 ? 1 : 1.3, Math.max(.6, sum * .75)) : Math.max(note._len <= 110 ? .85 : 1.05, Math.min(1.3, sum * .8))};
         const items = right ? [...spots, tile] : [tile, ...spots];
         add(row(items, Math.min((Wc - GAP * (items.length - 1)) / (sum + tile.w), maxH)));
       } else {
