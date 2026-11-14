@@ -894,9 +894,12 @@ function lavaTube(now, t, dt, vis) {
     if (!vis(p.y)) return;
     const x = p.x, rx = (mouth ? 15 : 9) * s, ry = (mouth ? 5.5 : 3.6) * s;
     if (lit) {   /* warm light thrown on the ground around it */
-      const g = ctx.createRadialGradient(x, y, 0, x, y, rx * 2.6);
-      g.addColorStop(0, `rgba(255,130,60,${.42 * lit * flick})`); g.addColorStop(1, 'rgba(255,110,40,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, rx * 2.6, rx * 1.4, 0, 0, 7); ctx.fill();
+      /* an elliptical pool of light that fades all the way out, no edge */
+      const Rg = rx * 3.2, a0 = .26 * lit * flick;
+      ctx.save(); ctx.translate(x, y); ctx.scale(1, .5);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, Rg);
+      g.addColorStop(0, `rgba(255,130,60,${a0})`); g.addColorStop(.35, `rgba(255,120,50,${a0 * .45})`); g.addColorStop(.7, `rgba(255,110,40,${a0 * .12})`); g.addColorStop(1, 'rgba(255,110,40,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, Rg, 0, 7); ctx.fill(); ctx.restore();
     }
     /* rocky lip and a few loose stones */
     ctx.fillStyle = '#2a2420'; blob(x, y + .6, rx + 3 * s, ry + 2.2 * s, mouth ? 4.1 : 7.3, 0, 1); ctx.fill();
@@ -906,9 +909,9 @@ function lavaTube(now, t, dt, vis) {
     if (lit) {
       ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.clip();
       const g2 = ctx.createRadialGradient(x, y + ry * 1.6, 0, x, y + ry * 1.6, rx * 1.1);
-      g2.addColorStop(0, `rgba(255,214,140,${.95 * lit * flick})`); g2.addColorStop(.45, `rgba(240,110,50,${.6 * lit})`); g2.addColorStop(1, 'rgba(120,30,10,0)');
+      g2.addColorStop(0, `rgba(255,214,140,${.8 * lit * flick})`); g2.addColorStop(.45, `rgba(240,110,50,${.5 * lit})`); g2.addColorStop(1, 'rgba(120,30,10,0)');
       ctx.fillStyle = g2; ctx.fillRect(x - rx, y - ry, rx * 2, ry * 2); ctx.restore();
-      ctx.strokeStyle = `rgba(255,170,90,${.75 * lit * flick})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,170,90,${.5 * lit * flick})`; ctx.lineWidth = .9; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
       if (O.embers && !reduced && Math.random() < (mouth ? 2.2 : 1.4) * lit * dt) spawn('ember', x + (Math.random() - .5) * rx, y - 1);
       if (!mouth && O.embers && !reduced && Math.random() < .6 * lit * dt) spawn('steam', x, y - 2);
     }
