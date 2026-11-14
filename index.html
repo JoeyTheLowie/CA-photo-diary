@@ -171,7 +171,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .rbar .jump{transition:background .15s,color .15s,opacity .2s}.rbar.stuck .jump{opacity:0;pointer-events:none}
 @media (max-width:699px){.jump{font-size:9px;padding:6px 10px;letter-spacing:.08em}.jump .jw{display:none}}.jump:focus-visible{outline:2px solid var(--pumice);outline-offset:4px;border-radius:4px}
 /* scenery flow (assets/flow.js): one line that follows the trip down the page, with a moment where it enters each country */
-#fx{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:4}
+.fxbox{position:absolute;top:0;bottom:0;left:calc(50% - 50vw);width:100vw;overflow:hidden;pointer-events:none;z-index:4}
+#fx{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
 .cdiv{position:relative;height:210px;margin-top:40px}
 .cdiv[data-k=lake1]{height:330px}
 .cdiv[data-k=lake2]{height:250px}
@@ -188,7 +189,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .bye.on{opacity:1}
 @media (max-width:699px){.cdiv{height:190px;margin-top:28px}.cdiv[data-k=lake1]{height:250px}.cdiv[data-k=lake2]{height:220px}}
 /* live preview inside the post page: just the location being edited */
-html.preview #fx,html.preview .sky,html.preview .topbar,html.preview .intro,html.preview .sentinel,html.preview .rbar,html.preview .stats,html.preview .foot,html.preview .later{display:none!important}
+html.preview #fx,html.preview .fxbox,html.preview .sky,html.preview .topbar,html.preview .intro,html.preview .sentinel,html.preview .rbar,html.preview .stats,html.preview .foot,html.preview .later{display:none!important}
 html.preview .stop:first-child{margin-top:0;padding-top:24px}
 html.preview .rows{min-height:240px}
 html.preview .ph{cursor:default}

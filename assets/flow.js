@@ -114,6 +114,7 @@ function deltaTree(x, y, ang, len, depth, rr, out, lvl = 0) {
 
 
 function build() {
+  place();
   const sy = scrollY, vw = document.documentElement.clientWidth; PL = innerWidth < 700;
   const stopsEl = $('#stops'); if (!stopsEl || !stopsEl.querySelector('.stop')) { R = null; return; }
   const pr = stopsEl.getBoundingClientRect(), edgeL = 0, edgeR = vw, colL = pr.left, colR = pr.right, cx = (colL + colR) / 2, colW = colR - colL;
@@ -403,7 +404,14 @@ function green(l) {
 const cv = $('#fx'), ctx = cv.getContext('2d');
 let dpr = 1, H = 0, Tmax = 0, last = performance.now(), parts = [], hist = [{t: 0, h: 0}];
 const plane = {ph: 'park', wait: 0, t0: 0, trail: []};
-function size() { dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); }
+/* the canvas scrolls WITH the page (absolute, moved every frame) rather than sitting fixed on the screen: on phones the browser scrolls
+   on its own thread, ahead of our drawing, so a fixed canvas made the stream lag and bounce against the photos */
+const M = 160;
+/* a clipping box the width of the screen and the height of the page, so the moving canvas never makes the page longer */
+{ const w = document.createElement('div'); w.className = 'fxbox'; cv.parentNode.insertBefore(w, cv); w.appendChild(cv); }   /* extra canvas above and below the screen, drawn too, so a fast scroll never shows an edge */
+let pgL = 0, pgT = 0, lastW = innerWidth;
+function place() { const pg = cv.offsetParent || document.body, r = pg.getBoundingClientRect(); pgL = r.left; pgT = r.top + scrollY; }
+function size() { dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round((innerHeight + 2 * M) * dpr); cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 2 * M + 'px'; place(); }
 function born(l, now) {
   let lo = 0, hi = hist.length;
   while (lo < hi) { const m = lo + hi >> 1; if (hist[m].h < l) lo = m + 1; else hi = m; }
@@ -464,20 +472,21 @@ function frame(now) {
   else while (hist.length > 1 && hist[hist.length - 1].h > H + 1) hist.pop();
   if (hist.length > 6000) hist.splice(1, 1000);
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, -sy * dpr);
-  ctx.clearRect(0, sy, innerWidth, vh);
+  const top0 = sy - M; cv.style.transform = `translate3d(${-pgL}px,${top0 - pgT}px,0)`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, -top0 * dpr);
+  ctx.clearRect(0, top0, innerWidth, vh + 2 * M);
   /* the flow passes under the ridge bar while it sits in the hero (once it sticks, its blurred glass covers the flow anyway) */
   ctx.save();
   /* the stream runs underground beneath the timeline while it sits in the hero (see the lava tube below) */
   /* underground stretches are hidden */
-  const under = TUBES.filter(tb => tb.y2 > sy - 100 && tb.y1 < sy + vh + 100);
-  if (under.length) { ctx.beginPath(); ctx.rect(0, sy - 200, innerWidth, vh + 400); for (const tb of under) { const xv = atP(R.lAtY(tb.y2)).x; ctx.rect(xv - 30, tb.y1 + 2, 60, tb.y2 - tb.y1 - 3); } ctx.clip('evenodd'); }
+  const under = TUBES.filter(tb => tb.y2 > sy - M - 60 && tb.y1 < sy + vh + M + 60);
+  if (under.length) { ctx.beginPath(); ctx.rect(0, sy - M - 200, innerWidth, vh + 2 * M + 400); for (const tb of under) { const xv = atP(R.lAtY(tb.y2)).x; ctx.rect(xv - 30, tb.y1 + 2, 60, tb.y2 - tb.y1 - 3); } ctx.clip('evenodd'); }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  const vis = y => y > sy - 90 && y < sy + vh + 90;
+  const vis = y => y > sy - M - 30 && y < sy + vh + M + 30;
   /* visible, revealed index range of a stream between two main-route lengths */
   const rngOf = (st, a, b, reach) => {
     const C = st.C, hi = Math.min(b, reach); if (hi <= a) return null;
-    const i0 = Math.max(C.iL(a), C.iY(sy - 90) - 1, 0), i1 = Math.min(C.iL(hi), C.iY(sy + vh + 90), C.n - 1);
+    const i0 = Math.max(C.iL(a), C.iY(sy - M - 30) - 1, 0), i1 = Math.min(C.iL(hi), C.iY(sy + vh + M + 30), C.n - 1);
     return i1 > i0 ? [i0, i1] : null;
   };
   const rng = (a, b) => rngOf(MAIN, a, b, H);
@@ -1106,7 +1115,8 @@ function flyPlane(now, rw, sy, vh) {
 
 let queued = 0;
 const queue = () => { cancelAnimationFrame(queued); queued = requestAnimationFrame(() => requestAnimationFrame(build)); };
-let rt; addEventListener('resize', () => { size(); clearTimeout(rt); rt = setTimeout(queue, 220); });
+/* the phone address bar showing/hiding only changes the height: resize the canvas but keep the route */
+let rt; addEventListener('resize', () => { size(); if (innerWidth !== lastW) { lastW = innerWidth; clearTimeout(rt); rt = setTimeout(queue, 220); } });
 addEventListener('diary:rendered', queue); addEventListener('scene:layout', queue);
 new ResizeObserver(queue).observe(document.getElementById('stops'));
 if (document.fonts) document.fonts.ready.then(queue);
