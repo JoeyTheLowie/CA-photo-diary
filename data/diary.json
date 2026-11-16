@@ -282,29 +282,5 @@
   }
  ],
  "notes": [],
- "layouts": {
-  "xela": {
-   "blocks": [
-    {
-     "id": "wkmr7l",
-     "t": "row",
-     "p": [
-      "c8a5342f",
-      "07eaca24"
-     ]
-    },
-    {
-     "id": "f4xi1z",
-     "t": "photo-text",
-     "p": [
-      "0aba65f7"
-     ],
-     "side": "right",
-     "h": "",
-     "b": ""
-    }
-   ],
-   "captions": {}
-  }
- }
+ "layouts": {}
 }
