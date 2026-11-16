@@ -214,7 +214,9 @@ function render(trip, diary, EDIT) {
     PAGES.push({el: m, stop: s, blocks: L.blocks, desktop: L.desktop || null, captions: L.captions || {}, figs: new Map(), w: 0});
     sec.appendChild(m); host.appendChild(sec);
   });
-  const nextStop = STOPS.find(s => D(s.from) > TODAY);
+  /* next up = the first stop after the last one with photos that isn't over yet (photos added early, e.g. tests, don't make it repeat) */
+  const lastShown = withPhotos.length ? STOPS.indexOf(withPhotos[withPhotos.length - 1]) : -1;
+  const nextStop = STOPS.find((s, i) => i > lastShown && D(s.to) >= TODAY) || (STOPS.some(s => D(s.from) > TODAY) ? null : undefined);
   if (!withPhotos.length) {
     const p = document.createElement('p'); p.className = 'later empty';
     p.innerHTML = dn < 1 ? `No photos yet. The trip starts on <b>${D(trip.start).toLocaleDateString('en-GB', {day:'numeric', month:'long'})}</b>, first stop ${esc(STOPS[0].name)}.` : 'No photos yet. They are on their way.';
@@ -223,7 +225,7 @@ function render(trip, diary, EDIT) {
     const p = document.createElement('p'); p.className = 'later';
     p.innerHTML = `Next up: <b>${esc(nextStop.name)}</b>, from ${D(nextStop.from).toLocaleDateString('en-GB', {day:'numeric', month:'long'})}.`;
     host.appendChild(p);
-  } else if (!EDIT) {
+  } else if (!EDIT && nextStop === undefined) {
     const e = document.createElement('div'); e.className = 'end'; e.id = 'end'; e.setAttribute('aria-hidden', 'true');
     e.innerHTML = `<div class="bye" id="bye">MGA → AMS</div><div class="lab"><b>${esc(trip.finish.name)}</b><span>${esc(fmtShort(END))} · flying home</span></div>`;
     host.appendChild(e);
