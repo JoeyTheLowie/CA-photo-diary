@@ -24,8 +24,8 @@
   {"id":"esteli","name":"Estelí & Miraflor","country":"Nicaragua","from":"2027-01-15","to":"2027-01-17","alt":1400},
   {"id":"matagalpa","name":"Matagalpa & Bosawás","country":"Nicaragua","from":"2027-01-17","to":"2027-01-21","alt":1745,"peak":"Peñas Blancas"},
   {"id":"granada","name":"Treehouse, Apoyo & Granada","country":"Nicaragua","from":"2027-01-21","to":"2027-01-25","alt":1344,"peak":"Mombacho"},
-  {"id":"sjds","name":"San Juan del Sur","country":"Nicaragua","from":"2027-01-25","to":"2027-01-27","alt":0},
-  {"id":"ometepe","name":"Ometepe","country":"Nicaragua","from":"2027-01-27","to":"2027-01-30","alt":1610,"peak":"Concepción"},
+  {"id":"sjds","name":"San Juan del Sur","country":"Nicaragua","from":"2027-01-25","to":"2027-01-28","alt":0},
+  {"id":"ometepe","name":"Ometepe","country":"Nicaragua","from":"2027-01-28","to":"2027-01-30","alt":1610,"peak":"Concepción"},
   {"id":"riosanjuan","name":"Río San Juan","country":"Nicaragua","from":"2027-01-30","to":"2027-02-05","alt":30},
   {"id":"managua","name":"Managua","country":"Nicaragua","from":"2027-02-05","to":"2027-02-06","alt":80}
  ]
